@@ -1,0 +1,203 @@
+{
+  "tasks": [
+    {
+      "id": 1,
+      "title": "Project Setup and Environment Configuration",
+      "description": "Initialize project structure, create virtual environment, and set up dependencies",
+      "status": "pending",
+      "dependencies": [],
+      "priority": "high",
+      "details": "Create a new Python project with the following structure: main.py, scrapers/ (directory for scraper modules), processors/ (for data processing), integrations/ (for Google Sheets), utils/ (for helper functions). Set up requirements.txt with necessary packages: selenium, beautifulsoup4, pandas, gspread, google-auth, instaloader, undetected-chromedriver. Create a .env file template for storing credentials and configuration.",
+      "testStrategy": "Verify project structure is correct, ensure all dependencies can be installed in a clean environment, and confirm imports work without errors."
+    },
+    {
+      "id": 2,
+      "title": "Implement Core Utilities and Helper Functions",
+      "description": "Create utility functions for common operations across scrapers",
+      "status": "pending",
+      "dependencies": [
+        1
+      ],
+      "priority": "high",
+      "details": "Develop utility modules for: 1) User-agent rotation to avoid detection, 2) Proxy handling if needed, 3) Error logging and reporting, 4) CAPTCHA detection, 5) Rate limiting and sleep functions, 6) Basic data validation (regex patterns for emails, phones). Implement a configuration loader from environment variables or config files.",
+      "testStrategy": "Unit test each utility function with sample inputs and expected outputs. Verify logging works correctly and rate limiting functions introduce appropriate delays."
+    },
+    {
+      "id": 3,
+      "title": "Google Maps Scraper - Basic Implementation",
+      "description": "Create a module to scrape business data from Google Maps",
+      "status": "pending",
+      "dependencies": [
+        2
+      ],
+      "priority": "high",
+      "details": "Implement a GoogleMapsScraper class using undetected-chromedriver and Selenium. The scraper should: 1) Accept search queries and locations (e.g., 'restaurantes CDMX'), 2) Navigate to Google Maps and perform searches, 3) Extract business listings including name, address, phone, website, 4) Handle pagination to collect multiple results, 5) Implement error handling for rate limiting. Return data in a standardized format (list of dictionaries).",
+      "testStrategy": "Test with sample searches in different LATAM locations. Verify data extraction accuracy by comparing scraped results with manual checks. Test error handling by simulating connection issues."
+    },
+    {
+      "id": 4,
+      "title": "Public Directories Scraper Implementation",
+      "description": "Create modules to scrape business data from public directories",
+      "status": "pending",
+      "dependencies": [
+        2
+      ],
+      "priority": "high",
+      "details": "Implement a DirectoryScraper class using BeautifulSoup and Requests/Selenium as needed. Create specific implementations for at least 2 public directories (e.g., chambers of commerce, yellow pages). Each implementation should: 1) Navigate to the directory, 2) Search by category and location, 3) Extract business name, category, phone, and other available data, 4) Handle pagination. Design with extensibility in mind to easily add more directories later.",
+      "testStrategy": "Test each directory scraper with different search parameters. Verify data extraction by comparing with manual checks. Test with different business categories and locations."
+    },
+    {
+      "id": 5,
+      "title": "Instagram Scraper Implementation",
+      "description": "Create a module to extract business profiles from Instagram based on hashtags and locations",
+      "status": "pending",
+      "dependencies": [
+        2
+      ],
+      "priority": "medium",
+      "details": "Implement an InstagramScraper class using Instaloader or Selenium. The scraper should: 1) Search for posts by hashtags or locations relevant to LATAM businesses, 2) Extract profile information from post authors, 3) Collect profile bio, location, and contact information when available, 4) Handle Instagram's rate limiting and authentication requirements. Consider implementing session management to avoid frequent logins.",
+      "testStrategy": "Test with various hashtags and locations. Verify profile data extraction accuracy. Test rate limiting handling by running multiple searches. Ensure compliance with Instagram's terms of service."
+    },
+    {
+      "id": 6,
+      "title": "Data Processing Module - Deduplication",
+      "description": "Implement functionality to identify and remove duplicate leads",
+      "status": "pending",
+      "dependencies": [
+        3,
+        4,
+        5
+      ],
+      "priority": "high",
+      "details": "Create a DataProcessor class with deduplication methods using Pandas. Implement: 1) Exact matching on business names, phones, or emails, 2) Fuzzy matching for similar business names (using libraries like fuzzywuzzy), 3) Configurable deduplication rules (e.g., match on name AND location or phone only), 4) Preservation of the record with the most complete information when duplicates are found. Return a cleaned DataFrame.",
+      "testStrategy": "Create test datasets with known duplicates in various formats. Verify all duplicates are correctly identified and the most complete records are preserved. Test with edge cases like slightly misspelled names."
+    },
+    {
+      "id": 7,
+      "title": "Data Processing Module - Validation",
+      "description": "Implement data validation and formatting for phone numbers and emails",
+      "status": "pending",
+      "dependencies": [
+        6
+      ],
+      "priority": "high",
+      "details": "Extend the DataProcessor class with validation methods: 1) Implement regex patterns for validating email formats, 2) Create phone number validation and formatting for LATAM countries (considering country codes), 3) Add a data quality score calculation based on completeness of records, 4) Flag invalid or suspicious data entries. Ensure all data is consistently formatted before storage.",
+      "testStrategy": "Test with various valid and invalid email formats and phone numbers from different LATAM countries. Verify formatting is consistent and invalid data is properly flagged."
+    },
+    {
+      "id": 8,
+      "title": "Google Sheets Integration - Authentication",
+      "description": "Set up authentication and connection to Google Sheets API",
+      "status": "pending",
+      "dependencies": [
+        2
+      ],
+      "priority": "high",
+      "details": "Create a GoogleSheetsIntegration class that handles: 1) OAuth2 authentication using service account credentials, 2) Loading credentials from environment variables or a secure file, 3) Connecting to the Google Sheets API using gspread, 4) Creating new spreadsheets or accessing existing ones, 5) Managing permissions and sharing settings. Implement proper error handling for authentication failures.",
+      "testStrategy": "Test authentication with valid and invalid credentials. Verify connection to test spreadsheets. Ensure proper error messages are displayed when authentication fails."
+    },
+    {
+      "id": 9,
+      "title": "Google Sheets Integration - Data Upload",
+      "description": "Implement functionality to update Google Sheets with processed lead data",
+      "status": "pending",
+      "dependencies": [
+        7,
+        8
+      ],
+      "priority": "high",
+      "details": "Extend the GoogleSheetsIntegration class to: 1) Convert processed DataFrame to the required format for Google Sheets, 2) Update existing sheets with new data (append or overwrite options), 3) Format the spreadsheet (headers, column widths, etc.), 4) Handle API rate limits and batch updates for efficiency, 5) Implement error recovery for failed uploads. Include a timestamp column to track when data was added.",
+      "testStrategy": "Test uploading various sizes of datasets. Verify data integrity by comparing source data with uploaded data. Test error recovery by simulating API failures during upload."
+    },
+    {
+      "id": 10,
+      "title": "Main Script Integration",
+      "description": "Create the main script that orchestrates the entire workflow",
+      "status": "pending",
+      "dependencies": [
+        3,
+        4,
+        5,
+        7,
+        9
+      ],
+      "priority": "high",
+      "details": "Develop main.py that orchestrates the entire process: 1) Load configuration (search queries, locations, etc.), 2) Initialize and run each scraper in sequence, 3) Process and validate the combined data, 4) Upload to Google Sheets, 5) Generate a summary report of the run (total leads, new leads, errors, etc.). Implement proper error handling to ensure partial failures don't stop the entire process.",
+      "testStrategy": "Run end-to-end tests with limited queries. Verify the entire workflow executes without errors. Test error handling by intentionally causing failures in different components."
+    },
+    {
+      "id": 11,
+      "title": "GitHub Actions Workflow Setup",
+      "description": "Configure GitHub Actions for automated daily execution",
+      "status": "pending",
+      "dependencies": [
+        10
+      ],
+      "priority": "medium",
+      "details": "Create a GitHub Actions workflow file (.github/workflows/daily-scrape.yml) that: 1) Runs on a daily schedule, 2) Sets up the Python environment and installs dependencies, 3) Configures necessary secrets and environment variables, 4) Executes the main script, 5) Handles and reports errors, 6) Optionally sends notifications on completion or failure. Consider implementing timeout and retry mechanisms.",
+      "testStrategy": "Test the workflow with a manual trigger. Verify it completes successfully and produces expected results. Test error reporting by introducing a deliberate error."
+    },
+    {
+      "id": 12,
+      "title": "Error Handling and Monitoring Enhancements",
+      "description": "Implement comprehensive error handling and monitoring",
+      "status": "pending",
+      "dependencies": [
+        10
+      ],
+      "priority": "medium",
+      "details": "Enhance error handling throughout the codebase: 1) Implement detailed logging with different severity levels, 2) Create a monitoring dashboard or report generation, 3) Add email notifications for critical failures, 4) Implement automatic retry logic for transient errors, 5) Create a system to track scraper health over time (success rates, data quality). Consider adding Sentry or similar error tracking.",
+      "testStrategy": "Simulate various error conditions and verify appropriate handling. Check that notifications are sent correctly and logs contain sufficient information for debugging."
+    },
+    {
+      "id": 13,
+      "title": "Performance Optimization",
+      "description": "Optimize the scrapers and data processing for better performance",
+      "status": "pending",
+      "dependencies": [
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "priority": "low",
+      "details": "Review and optimize the codebase for performance: 1) Implement parallel scraping where possible (using ThreadPoolExecutor or similar), 2) Optimize Selenium usage (minimize browser instances, use headless mode), 3) Improve data processing efficiency for large datasets, 4) Implement caching mechanisms to avoid re-scraping unchanged data, 5) Add progress tracking for long-running operations.",
+      "testStrategy": "Benchmark performance before and after optimizations. Verify that optimizations don't affect data quality or reliability. Test with larger datasets to ensure scalability."
+    },
+    {
+      "id": 14,
+      "title": "Documentation - User Guide",
+      "description": "Create comprehensive user documentation",
+      "status": "pending",
+      "dependencies": [
+        10,
+        11
+      ],
+      "priority": "medium",
+      "details": "Create user documentation including: 1) Installation and setup instructions, 2) Configuration options and examples, 3) How to add new search queries or locations, 4) Troubleshooting common issues, 5) Best practices for avoiding detection and blocks, 6) How to interpret the Google Sheets output. Include screenshots and examples where appropriate.",
+      "testStrategy": "Have someone unfamiliar with the project follow the documentation to set up and run the system. Gather feedback and improve unclear sections."
+    },
+    {
+      "id": 15,
+      "title": "Documentation - Technical Reference",
+      "description": "Create technical documentation for developers",
+      "status": "pending",
+      "dependencies": [
+        10,
+        11,
+        12,
+        13
+      ],
+      "priority": "medium",
+      "details": "Create technical documentation including: 1) System architecture overview, 2) Module descriptions and interactions, 3) How to extend the system with new scrapers, 4) API references for key classes, 5) Deployment options beyond GitHub Actions, 6) Security considerations and best practices, 7) Known limitations and future improvement areas. Use docstrings throughout the code and consider generating API docs with a tool like Sphinx.",
+      "testStrategy": "Review documentation for completeness and accuracy. Verify that all major components and functions are documented. Ensure code examples are correct and functional."
+    }
+  ],
+  "metadata": {
+    "projectName": "LeadScraper LATAM Implementation",
+    "totalTasks": 15,
+    "sourceFile": "scripts/leadscraper_prd.txt",
+    "generatedAt": "2023-11-14"
+  }
+}
