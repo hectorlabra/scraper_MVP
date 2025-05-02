@@ -9,3 +9,47 @@ Implement a DirectoryScraper class using BeautifulSoup and Requests/Selenium as 
 
 # Test Strategy:
 Test each directory scraper with different search parameters. Verify data extraction by comparing with manual checks. Test with different business categories and locations.
+
+# Subtasks:
+## 1. Research and select target public directories [pending]
+### Dependencies: None
+### Description: Research and select public business directories to target in LATAM (e.g., Yellow Pages, Chambers of Commerce, industry-specific directories).
+### Details:
+
+
+## 2. Create base DirectoryScraper class [pending]
+### Dependencies: 4.1
+### Description: Create a base DirectoryScraper class with common scraping functionality for all directory implementations.
+### Details:
+
+
+## 3. Implement first directory-specific scraper [pending]
+### Dependencies: 4.2
+### Description: Implement the first directory-specific scraper by extending the base class.
+### Details:
+
+
+## 4. Implement second directory-specific scraper [pending]
+### Dependencies: 4.2
+### Description: Implement the second directory-specific scraper by extending the base class.
+### Details:
+
+
+## 5. Implement pagination and result collection [pending]
+### Dependencies: 4.3, 4.4
+### Description: Add pagination handling and result collection for each directory scraper.
+### Details:
+
+
+## 6. Define directory data structure [pending]
+### Dependencies: 4.5
+### Description: Create unified data structure for storing scraped directory data consistently.
+### Details:
+
+
+## 7. Integrate directory results with data processing [pending]
+### Dependencies: 4.6
+### Description: Connect public directory scraper output to the main data processing pipeline.
+### Details:
+
+

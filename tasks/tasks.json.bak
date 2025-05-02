@@ -121,85 +121,7 @@
       ],
       "priority": "high",
       "details": "Implement a DirectoryScraper class using BeautifulSoup and Requests/Selenium as needed. Create specific implementations for at least 2 public directories (e.g., chambers of commerce, yellow pages). Each implementation should: 1) Navigate to the directory, 2) Search by category and location, 3) Extract business name, category, phone, and other available data, 4) Handle pagination. Design with extensibility in mind to easily add more directories later.",
-      "testStrategy": "Test each directory scraper with different search parameters. Verify data extraction by comparing with manual checks. Test with different business categories and locations.",
-      "subtasks": [
-        {
-          "id": 1,
-          "title": "Research and select target public directories",
-          "description": "Research and select public business directories to target in LATAM (e.g., Yellow Pages, Chambers of Commerce, industry-specific directories).",
-          "details": "",
-          "status": "pending",
-          "dependencies": [],
-          "parentTaskId": 4
-        },
-        {
-          "id": 2,
-          "title": "Create base DirectoryScraper class",
-          "description": "Create a base DirectoryScraper class with common scraping functionality for all directory implementations.",
-          "details": "",
-          "status": "pending",
-          "dependencies": [
-            "4.1"
-          ],
-          "parentTaskId": 4
-        },
-        {
-          "id": 3,
-          "title": "Implement first directory-specific scraper",
-          "description": "Implement the first directory-specific scraper by extending the base class.",
-          "details": "",
-          "status": "pending",
-          "dependencies": [
-            "4.2"
-          ],
-          "parentTaskId": 4
-        },
-        {
-          "id": 4,
-          "title": "Implement second directory-specific scraper",
-          "description": "Implement the second directory-specific scraper by extending the base class.",
-          "details": "",
-          "status": "pending",
-          "dependencies": [
-            "4.2"
-          ],
-          "parentTaskId": 4
-        },
-        {
-          "id": 5,
-          "title": "Implement pagination and result collection",
-          "description": "Add pagination handling and result collection for each directory scraper.",
-          "details": "",
-          "status": "pending",
-          "dependencies": [
-            "4.3",
-            "4.4"
-          ],
-          "parentTaskId": 4
-        },
-        {
-          "id": 6,
-          "title": "Define directory data structure",
-          "description": "Create unified data structure for storing scraped directory data consistently.",
-          "details": "",
-          "status": "pending",
-          "dependencies": [
-            "4.5"
-          ],
-          "parentTaskId": 4
-        },
-        {
-          "id": 7,
-          "title": "Integrate directory results with data processing",
-          "description": "Connect public directory scraper output to the main data processing pipeline.",
-          "details": "",
-          "status": "pending",
-          "dependencies": [
-            "4.6"
-          ],
-          "parentTaskId": 4
-        }
-      ]
+      "testStrategy": "Test each directory scraper with different search parameters. Verify data extraction by comparing with manual checks. Test with different business categories and locations."
     },
     {
       "id": 5,
@@ -211,41 +133,7 @@
       ],
       "priority": "medium",
       "details": "Implement an InstagramScraper class using Instaloader or Selenium. The scraper should: 1) Search for posts by hashtags or locations relevant to LATAM businesses, 2) Extract profile information from post authors, 3) Collect profile bio, location, and contact information when available, 4) Handle Instagram's rate limiting and authentication requirements. Consider implementing session management to avoid frequent logins.",
-      "testStrategy": "Test with various hashtags and locations. Verify profile data extraction accuracy. Test rate limiting handling by running multiple searches. Ensure compliance with Instagram's terms of service.",
-      "subtasks": [
-        {
-          "id": 1,
-          "title": "Set up InstagramScraper class with authentication and session management",
-          "description": "Create the base InstagramScraper class with authentication functionality and session management to handle Instagram's rate limiting",
-          "dependencies": [],
-          "details": "1. Create an InstagramScraper class with constructor accepting credentials\n2. Implement login functionality using either Instaloader or Selenium (Selenium recommended for more robust scraping)\n3. Add session management to store cookies and avoid frequent logins\n4. Implement rate limiting protection with exponential backoff and random delays\n5. Add error handling for authentication failures\n6. Create a method to check login status\n7. Test the authentication flow with valid and invalid credentials\n8. Implement a session recovery mechanism if disconnected",
-          "status": "pending",
-          "parentTaskId": 5
-        },
-        {
-          "id": 2,
-          "title": "Implement hashtag and location search functionality",
-          "description": "Add methods to search Instagram for posts by hashtags and locations relevant to LATAM businesses",
-          "dependencies": [
-            1
-          ],
-          "details": "1. Create a method to search posts by hashtag (e.g., searchByHashtag(tag, limit))\n2. Implement a method to search posts by location (e.g., searchByLocation(location_id, limit))\n3. Add pagination support to retrieve more than the initial set of posts\n4. Create a helper method to identify LATAM-relevant content (e.g., by language, location mentions)\n5. Implement filters to focus on business-related posts\n6. Add functionality to store search results temporarily\n7. Test search functionality with various hashtags and locations\n8. Implement error handling for failed searches and rate limiting",
-          "status": "pending",
-          "parentTaskId": 5
-        },
-        {
-          "id": 3,
-          "title": "Extract and process business profile information",
-          "description": "Implement methods to extract business profile information from post authors and collect relevant data",
-          "dependencies": [
-            1,
-            2
-          ],
-          "details": "1. Create a method to extract profile information from post authors\n2. Implement functionality to parse profile bio for business indicators\n3. Add extraction of contact information (email, phone) when available\n4. Implement location extraction and normalization\n5. Create a data structure to store extracted business profiles\n6. Add deduplication logic to avoid processing the same profile multiple times\n7. Implement a method to export collected data to CSV/JSON\n8. Test the extraction with various profile types (business, personal, etc.)\n9. Add validation to ensure extracted data meets quality standards",
-          "status": "pending",
-          "parentTaskId": 5
-        }
-      ]
+      "testStrategy": "Test with various hashtags and locations. Verify profile data extraction accuracy. Test rate limiting handling by running multiple searches. Ensure compliance with Instagram's terms of service."
     },
     {
       "id": 6,
@@ -312,85 +200,7 @@
       ],
       "priority": "high",
       "details": "Develop main.py that orchestrates the entire process: 1) Load configuration (search queries, locations, etc.), 2) Initialize and run each scraper in sequence, 3) Process and validate the combined data, 4) Upload to Google Sheets, 5) Generate a summary report of the run (total leads, new leads, errors, etc.). Implement proper error handling to ensure partial failures don't stop the entire process.",
-      "testStrategy": "Run end-to-end tests with limited queries. Verify the entire workflow executes without errors. Test error handling by intentionally causing failures in different components.",
-      "subtasks": [
-        {
-          "id": 1,
-          "title": "Configuration Management",
-          "description": "Create a configuration management system to handle scraper settings, search queries, credentials, etc.",
-          "details": "",
-          "status": "pending",
-          "dependencies": [],
-          "parentTaskId": 10
-        },
-        {
-          "id": 2,
-          "title": "Scraper Orchestration",
-          "description": "Implement scraper initialization and execution orchestration to run them in sequence.",
-          "details": "",
-          "status": "pending",
-          "dependencies": [
-            "10.1"
-          ],
-          "parentTaskId": 10
-        },
-        {
-          "id": 3,
-          "title": "Data Pipeline Integration",
-          "description": "Create a data pipeline to process, validate, and combine data from all scrapers.",
-          "details": "",
-          "status": "pending",
-          "dependencies": [
-            "10.2"
-          ],
-          "parentTaskId": 10
-        },
-        {
-          "id": 4,
-          "title": "Google Sheets Upload Integration",
-          "description": "Integrate with Google Sheets API for data upload of processed leads.",
-          "details": "",
-          "status": "pending",
-          "dependencies": [
-            "10.3"
-          ],
-          "parentTaskId": 10
-        },
-        {
-          "id": 5,
-          "title": "Error Handling and Logging",
-          "description": "Implement error handling, logging, and reporting for the main script.",
-          "details": "",
-          "status": "pending",
-          "dependencies": [
-            "10.1"
-          ],
-          "parentTaskId": 10
-        },
-        {
-          "id": 6,
-          "title": "Run Summary Reporting",
-          "description": "Create summary report generator to provide statistics and insights from each run.",
-          "details": "",
-          "status": "pending",
-          "dependencies": [
-            "10.4",
-            "10.5"
-          ],
-          "parentTaskId": 10
-        },
-        {
-          "id": 7,
-          "title": "Main Entry Point and CLI",
-          "description": "Create an entry point script (main.py) and command-line interface for running the entire workflow.",
-          "details": "",
-          "status": "pending",
-          "dependencies": [
-            "10.6"
-          ],
-          "parentTaskId": 10
-        }
-      ]
+      "testStrategy": "Run end-to-end tests with limited queries. Verify the entire workflow executes without errors. Test error handling by intentionally causing failures in different components."
     },
     {
       "id": 11,
@@ -402,62 +212,7 @@
       ],
       "priority": "medium",
       "details": "Create a GitHub Actions workflow file (.github/workflows/daily-scrape.yml) that: 1) Runs on a daily schedule, 2) Sets up the Python environment and installs dependencies, 3) Configures necessary secrets and environment variables, 4) Executes the main script, 5) Handles and reports errors, 6) Optionally sends notifications on completion or failure. Consider implementing timeout and retry mechanisms.",
-      "testStrategy": "Test the workflow with a manual trigger. Verify it completes successfully and produces expected results. Test error reporting by introducing a deliberate error.",
-      "subtasks": [
-        {
-          "id": 1,
-          "title": "Create GitHub Actions Workflow File",
-          "description": "Create the GitHub Actions workflow file with proper scheduling configuration.",
-          "details": "",
-          "status": "pending",
-          "dependencies": [],
-          "parentTaskId": 11
-        },
-        {
-          "id": 2,
-          "title": "Configure Secrets and Environment Variables",
-          "description": "Set up environment configuration for GitHub Actions, including secrets management.",
-          "details": "",
-          "status": "pending",
-          "dependencies": [
-            "11.1"
-          ],
-          "parentTaskId": 11
-        },
-        {
-          "id": 3,
-          "title": "Configure Job Steps",
-          "description": "Implement job steps for installing dependencies and running the scraper.",
-          "details": "",
-          "status": "pending",
-          "dependencies": [
-            "11.2"
-          ],
-          "parentTaskId": 11
-        },
-        {
-          "id": 4,
-          "title": "Add Error Handling and Notifications",
-          "description": "Set up error handling and notification systems in the workflow.",
-          "details": "",
-          "status": "pending",
-          "dependencies": [
-            "11.3"
-          ],
-          "parentTaskId": 11
-        },
-        {
-          "id": 5,
-          "title": "Test and Validate Workflow",
-          "description": "Test the GitHub Actions workflow with manual triggers.",
-          "details": "",
-          "status": "pending",
-          "dependencies": [
-            "11.4"
-          ],
-          "parentTaskId": 11
-        }
-      ]
+      "testStrategy": "Test the workflow with a manual trigger. Verify it completes successfully and produces expected results. Test error reporting by introducing a deliberate error."
     },
     {
       "id": 12,
@@ -469,63 +224,7 @@
       ],
       "priority": "medium",
       "details": "Enhance error handling throughout the codebase: 1) Implement detailed logging with different severity levels, 2) Create a monitoring dashboard or report generation, 3) Add email notifications for critical failures, 4) Implement automatic retry logic for transient errors, 5) Create a system to track scraper health over time (success rates, data quality). Consider adding Sentry or similar error tracking.",
-      "testStrategy": "Simulate various error conditions and verify appropriate handling. Check that notifications are sent correctly and logs contain sufficient information for debugging.",
-      "subtasks": [
-        {
-          "id": 1,
-          "title": "Implement Comprehensive Logging",
-          "description": "Set up a comprehensive logging system with different severity levels.",
-          "details": "",
-          "status": "pending",
-          "dependencies": [],
-          "parentTaskId": 12
-        },
-        {
-          "id": 2,
-          "title": "Implement Retry Logic",
-          "description": "Create retry mechanisms for handling transient errors in scraping.",
-          "details": "",
-          "status": "pending",
-          "dependencies": [
-            "12.1"
-          ],
-          "parentTaskId": 12
-        },
-        {
-          "id": 3,
-          "title": "Create Failure Notification System",
-          "description": "Develop a notification system for critical failures (email/Slack).",
-          "details": "",
-          "status": "pending",
-          "dependencies": [
-            "12.1"
-          ],
-          "parentTaskId": 12
-        },
-        {
-          "id": 4,
-          "title": "Develop Monitoring Dashboard",
-          "description": "Build a monitoring dashboard to track scraper health and performance.",
-          "details": "",
-          "status": "pending",
-          "dependencies": [
-            "12.1"
-          ],
-          "parentTaskId": 12
-        },
-        {
-          "id": 5,
-          "title": "Implement Data Quality Monitoring",
-          "description": "Implement data quality checks and validation throughout the system.",
-          "details": "",
-          "status": "pending",
-          "dependencies": [
-            "12.2",
-            "12.3"
-          ],
-          "parentTaskId": 12
-        }
-      ]
+      "testStrategy": "Simulate various error conditions and verify appropriate handling. Check that notifications are sent correctly and logs contain sufficient information for debugging."
     },
     {
       "id": 13,

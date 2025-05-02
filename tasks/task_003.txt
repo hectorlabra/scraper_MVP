@@ -9,3 +9,47 @@ Implement a GoogleMapsScraper class using undetected-chromedriver and Selenium. 
 
 # Test Strategy:
 Test with sample searches in different LATAM locations. Verify data extraction accuracy by comparing scraped results with manual checks. Test error handling by simulating connection issues.
+
+# Subtasks:
+## 1. Configuración de undetected-chromedriver y Selenium [pending]
+### Dependencies: None
+### Description: Configurar el entorno de navegación automatizada resistente a detección
+### Details:
+Implementar la configuración base de undetected-chromedriver y Selenium para evadir la detección de bots. Esto incluye: 1) Instalar undetected-chromedriver, 2) Configurar opciones del navegador para minimizar la huella digital (disable-blink-features=AutomationControlled, etc.), 3) Implementar clases para inicializar y gestionar la sesión del navegador, 4) Crear métodos de cierre controlado del navegador y gestión de recursos. Asegurar que la configuración funciona en entornos headless y con interfaz gráfica.
+
+## 2. Implementación de estrategias anti-detección [pending]
+### Dependencies: 3.1
+### Description: Implementar estrategias anti-detección y simulación de comportamiento humano
+### Details:
+Crear una biblioteca de funciones para simular comportamiento humano en Google Maps: 1) Implementar patrones de scroll aleatorios (velocidad variable, pausas), 2) Simular movimientos de ratón realistas, 3) Crear sistema de rotación de User-Agents basado en navegadores modernos, 4) Implementar funciones de delay variables entre acciones (time.sleep() con tiempos aleatorios entre 3-10 segundos), 5) Crear funciones para realizar clics simulando comportamiento humano (con pequeños offsets aleatorios), 6) Implementar mecanismos para alternar entre diferentes patrones de navegación para evitar patrones detectables.
+
+## 3. Funcionalidad de búsqueda en Google Maps [pending]
+### Dependencies: 3.2
+### Description: Desarrollar funcionalidad de búsqueda en Google Maps
+### Details:
+Implementar métodos para interactuar con la interfaz de búsqueda de Google Maps: 1) Navegación segura a la URL de Google Maps, 2) Localización e interacción con el campo de búsqueda, 3) Implementar búsquedas por categoría y ubicación (ej: 'restaurantes CDMX'), 4) Gestionar carga de página y esperas dinámicas (usando WebDriverWait para asegurar que los elementos están listos), 5) Manejar los diversos formatos de resultados de búsqueda que Google Maps puede presentar, 6) Implementar reintentos cuando la búsqueda falla. Asegurar que la funcionalidad se adapta a los cambios frecuentes de la interfaz de usuario de Google Maps.
+
+## 4. Extracción de datos de listados de negocios [pending]
+### Dependencies: 3.3
+### Description: Implementar extracción de datos de listados de negocios
+### Details:
+Desarrollar funciones para extraer información detallada de los listados de negocios: 1) Identificar y parsear nombres de negocios, 2) Extraer direcciones completas, 3) Obtener números de teléfono (cuando estén disponibles), 4) Recopilar URLs de sitios web, 5) Extraer valoraciones y número de reseñas, 6) Capturar categorías de negocio, 7) Obtener horarios cuando estén disponibles. Implementar selectors CSS/XPath robustos con alternativas para adaptarse a cambios en la estructura HTML. Asegurar que los datos se extraen de forma consistente y se manejan correctamente los campos faltantes.
+
+## 5. Manejo de paginación y navegación por resultados [pending]
+### Dependencies: 3.4
+### Description: Desarrollar manejo de paginación y navegación por resultados
+### Details:
+Implementar funcionalidad para navegar a través de múltiples páginas de resultados: 1) Detectar y manejar el panel de resultados lateral, 2) Implementar scroll progresivo para cargar más resultados dinámicamente, 3) Detectar cuándo se han cargado nuevos resultados, 4) Mantener registro de negocios ya procesados para evitar duplicados, 5) Implementar lógica para determinar cuándo se han agotado los resultados, 6) Añadir opción para limitar la cantidad de páginas/resultados a procesar. La implementación debe ser robusta frente a cambios en la carga de la página y manejar correctamente los casos donde Google muestra diferentes formatos de resultados.
+
+## 6. Detección y manejo de bloqueos y CAPTCHAs [pending]
+### Dependencies: 3.5
+### Description: Implementar detección y manejo de bloqueos y CAPTCHAs
+### Details:
+Desarrollar sistema de detección y respuesta a mecanismos anti-scraping de Google: 1) Implementar detección de patrones de CAPTCHA en la página, 2) Crear función para identificar redirecciones sospechosas o páginas de bloqueo, 3) Desarrollar sistema de notificación cuando se detecta un bloqueo, 4) Implementar estrategias de pausa temporal cuando se detectan patrones de bloqueo (esperar períodos más largos), 5) Crear lógica para guardar el estado actual y poder reanudar más tarde, 6) Optimizar las técnicas anti-detección cuando se encuentran bloqueos repetidos. El sistema debe minimizar el riesgo de bloqueo permanente de IPs mediante una estrategia progresiva de mitigación.
+
+## 7. Integración y finalización de GoogleMapsScraper [pending]
+### Dependencies: 3.6
+### Description: Integrar componentes y finalizar clase GoogleMapsScraper
+### Details:
+Integrar todos los componentes desarrollados en las subtareas anteriores en una clase GoogleMapsScraper completa y funcional: 1) Diseñar una API clara y fácil de usar para la clase, 2) Implementar constructor con opciones configurables (límites de resultados, tiempos de espera, etc.), 3) Crear método principal search() que coordine todo el proceso de scraping, 4) Implementar sistema de logging detallado para diagnóstico, 5) Añadir manejo de errores comprensivo con recuperación automática cuando sea posible, 6) Optimizar la gestión de recursos (cerrar navegadores correctamente), 7) Documentar la clase y métodos extensamente. La clase final debe ser fácil de usar, robusta y producir resultados consistentes en formato estandarizado (lista de diccionarios con campos uniformes).
+
