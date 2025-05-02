@@ -1,0 +1,75 @@
+# LeadScraper LATAM - Descripción del Proyecto (Prompt Inicial)
+
+**Objetivo General**:  
+Desarrollar un script Python que automatice la extracción diaria de leads comerciales en LATAM desde **Google Maps**, **Instagram** y **directorios públicos**, y los guarde en **Google Sheets**, para que agencias de marketing puedan acceder a datos locales sin esfuerzo manual.
+
+---
+
+## 🎯 **Requisitos Clave**  
+1. **Fuentes de Datos**:  
+   - **Google Maps**: Nombre, dirección, teléfono, sitio web.  
+   - **Instagram**: Perfil, biografía, ubicación.  
+   - **Directorios Públicos**: Nombre, rubro, teléfono (ej: cámaras de comercio).  
+
+2. **Procesamiento**:  
+   - Eliminar duplicados.  
+   - Validar formato de teléfonos/emails (regex básico).  
+
+3. **Entrega Automatizada**:  
+   - Actualizar **Google Sheets** diariamente vía API.  
+   - Columnas: Nombre, Teléfono, Email, Instagram, Fuente, Fecha.  
+
+4. **Tecnologías**:  
+   - Python, BeautifulSoup, Selenium (scraping).  
+   - Instaloader (Instagram).  
+   - Pandas (limpieza de datos).  
+   - Google Sheets API (gspread).  
+
+5. **Hosting/CI**:  
+   - GitHub Actions para ejecución diaria gratuita.  
+
+---
+
+## 📋 **Entregables**  
+- **Script Python** modular (scrapers + procesamiento + integración).  
+- **Google Sheets** preconfigurado con datos de ejemplo.  
+- **Documentación** para despliegue y uso.  
+
+---
+
+## ⚙️ **Pasos Técnicos**  
+1. **Scraping**:  
+   - Google Maps: Extraer datos de búsquedas locales (ej: "restaurantes CDMX").  
+   - Instagram: Scrapear perfiles por hashtags/ubicaciones.  
+   - Directorios: Extraer tablas HTML/CSV de fuentes públicas.  
+
+2. **Limpieza**:  
+   - Eliminar filas duplicadas basadas en nombre/teléfono.  
+   - Validar emails (ej: `usuario@dominio.com`).  
+
+3. **Integración**:  
+   - Enviar datos a Google Sheets usando credenciales OAuth2.  
+
+4. **Automatización**:  
+   - Programar ejecución diaria con GitHub Actions.  
+
+---
+
+## ⚠️ **Riesgos y Mitigación**  
+- **Bloqueos de IP**: Rotar User-Agents y usar delays (`time.sleep`). Usar `undetected-chromedriver`. Limitar consultas. Manejo de errores robusto.
+- **Datos incompletos**: Incluir columna "Calidad del Lead" en Sheets.
+- **Cambios en estructura web**: Monitoreo manual frecuente y código modular.
+- **CAPTCHAs**: Detectar y pausar/detener.
+- **Límites GitHub Actions**: Considerar ejecución local si es necesario.
+
+---
+
+## 📊 **Ejemplo de Flujo (Mermaid)**  
+```mermaid
+flowchart LR
+    A[Scrape Google Maps (Selenium)] --> B[Procesar datos (Pandas)]
+    C[Scrape Instagram (Instaloader/Selenium - Baja Prio)] --> B
+    D[Scrape Directorios/Web (Requests/BS4/Selenium)] --> B
+    B --> E[Validar y limpiar]
+    E --> F[Actualizar Google Sheets (gspread)] 
+```
