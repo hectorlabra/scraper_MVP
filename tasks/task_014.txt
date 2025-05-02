@@ -1,0 +1,11 @@
+# Task ID: 14
+# Title: Documentation - User Guide
+# Status: pending
+# Dependencies: 10, 11
+# Priority: medium
+# Description: Create comprehensive user documentation
+# Details:
+Create user documentation including: 1) Installation and setup instructions, 2) Configuration options and examples, 3) How to add new search queries or locations, 4) Troubleshooting common issues, 5) Best practices for avoiding detection and blocks, 6) How to interpret the Google Sheets output. Include screenshots and examples where appropriate.
+
+# Test Strategy:
+Have someone unfamiliar with the project follow the documentation to set up and run the system. Gather feedback and improve unclear sections.
