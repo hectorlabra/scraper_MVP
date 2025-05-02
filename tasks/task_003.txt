@@ -1,0 +1,11 @@
+# Task ID: 3
+# Title: Google Maps Scraper - Basic Implementation
+# Status: pending
+# Dependencies: 2
+# Priority: high
+# Description: Create a module to scrape business data from Google Maps
+# Details:
+Implement a GoogleMapsScraper class using undetected-chromedriver and Selenium. The scraper should: 1) Accept search queries and locations (e.g., 'restaurantes CDMX'), 2) Navigate to Google Maps and perform searches, 3) Extract business listings including name, address, phone, website, 4) Handle pagination to collect multiple results, 5) Implement error handling for rate limiting. Return data in a standardized format (list of dictionaries).
+
+# Test Strategy:
+Test with sample searches in different LATAM locations. Verify data extraction accuracy by comparing scraped results with manual checks. Test error handling by simulating connection issues.
