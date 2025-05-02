@@ -1,0 +1,11 @@
+# Task ID: 2
+# Title: Implement Core Utilities and Helper Functions
+# Status: pending
+# Dependencies: 1
+# Priority: high
+# Description: Create utility functions for common operations across scrapers
+# Details:
+Develop utility modules for: 1) User-agent rotation to avoid detection, 2) Proxy handling if needed, 3) Error logging and reporting, 4) CAPTCHA detection, 5) Rate limiting and sleep functions, 6) Basic data validation (regex patterns for emails, phones). Implement a configuration loader from environment variables or config files.
+
+# Test Strategy:
+Unit test each utility function with sample inputs and expected outputs. Verify logging works correctly and rate limiting functions introduce appropriate delays.
