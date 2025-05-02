@@ -1,0 +1,11 @@
+# Task ID: 5
+# Title: Instagram Scraper Implementation
+# Status: pending
+# Dependencies: 2
+# Priority: medium
+# Description: Create a module to extract business profiles from Instagram based on hashtags and locations
+# Details:
+Implement an InstagramScraper class using Instaloader or Selenium. The scraper should: 1) Search for posts by hashtags or locations relevant to LATAM businesses, 2) Extract profile information from post authors, 3) Collect profile bio, location, and contact information when available, 4) Handle Instagram's rate limiting and authentication requirements. Consider implementing session management to avoid frequent logins.
+
+# Test Strategy:
+Test with various hashtags and locations. Verify profile data extraction accuracy. Test rate limiting handling by running multiple searches. Ensure compliance with Instagram's terms of service.
