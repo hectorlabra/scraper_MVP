@@ -1,0 +1,11 @@
+# Task ID: 10
+# Title: Main Script Integration
+# Status: pending
+# Dependencies: 3, 4, 5, 7, 9
+# Priority: high
+# Description: Create the main script that orchestrates the entire workflow
+# Details:
+Develop main.py that orchestrates the entire process: 1) Load configuration (search queries, locations, etc.), 2) Initialize and run each scraper in sequence, 3) Process and validate the combined data, 4) Upload to Google Sheets, 5) Generate a summary report of the run (total leads, new leads, errors, etc.). Implement proper error handling to ensure partial failures don't stop the entire process.
+
+# Test Strategy:
+Run end-to-end tests with limited queries. Verify the entire workflow executes without errors. Test error handling by intentionally causing failures in different components.
