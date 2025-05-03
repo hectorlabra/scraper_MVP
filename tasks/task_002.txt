@@ -1,6 +1,6 @@
 # Task ID: 2
 # Title: Implement Core Utilities and Helper Functions
-# Status: pending
+# Status: done
 # Dependencies: 1
 # Priority: high
 # Description: Create utility functions for common operations across scrapers
