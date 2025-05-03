@@ -9,3 +9,44 @@ Extend the DataProcessor class with validation methods: 1) Implement regex patte
 
 # Test Strategy:
 Test with various valid and invalid email formats and phone numbers from different LATAM countries. Verify formatting is consistent and invalid data is properly flagged.
+
+# Subtasks:
+## 1. Implement Email Validation with Regex Patterns [pending]
+### Dependencies: None
+### Description: Extend the DataProcessor class with methods to validate email formats using regular expressions
+### Details:
+1. Create a new method `validateEmail(email)` in the DataProcessor class that returns a boolean indicating validity
+2. Implement regex patterns that validate standard email formats (username@domain.tld)
+3. Handle edge cases like subdomains, special characters in usernames, and various TLDs
+4. Add a `formatEmail(email)` method that normalizes email addresses (e.g., trimming whitespace, converting to lowercase)
+5. Write unit tests with various valid and invalid email formats
+6. Test with edge cases like international domains and unusual but valid formats
+7. Document the regex patterns used and their validation logic
+
+## 2. Implement Phone Number Validation for LATAM Countries [pending]
+### Dependencies: None
+### Description: Add phone number validation and formatting functionality with support for LATAM country codes
+### Details:
+1. Create a `validatePhoneNumber(phoneNumber, countryCode)` method in DataProcessor class
+2. Research and implement country code validation for major LATAM countries (Mexico, Brazil, Argentina, Colombia, etc.)
+3. Create a mapping of country codes to expected phone number formats
+4. Implement regex patterns for each country's phone number format
+5. Add a `formatPhoneNumber(phoneNumber, countryCode)` method that standardizes format (e.g., +XX-XXX-XXXX-XXXX)
+6. Handle cases where country code might be embedded in the number or provided separately
+7. Write unit tests with sample phone numbers from different LATAM countries
+8. Test edge cases like numbers with/without country codes, different separators, etc.
+
+## 3. Implement Data Quality Scoring and Flagging [pending]
+### Dependencies: 7.1, 7.2
+### Description: Add functionality to calculate data quality scores and flag suspicious entries
+### Details:
+1. Create a `calculateDataQualityScore(record)` method that evaluates completeness of records
+2. Define scoring criteria based on presence and validity of required fields
+3. Implement weighted scoring where critical fields (like email, phone) have higher importance
+4. Add a `flagSuspiciousData(record)` method that identifies potentially invalid entries
+5. Define criteria for suspicious data (e.g., dummy emails, sequential phone numbers)
+6. Create a comprehensive `validateRecord(record)` method that applies all validation rules and returns validation results
+7. Ensure all data is consistently formatted before storage by creating a `prepareForStorage(record)` method
+8. Write integration tests that validate complete records through the entire validation pipeline
+9. Document the scoring algorithm and flagging criteria for future reference
+

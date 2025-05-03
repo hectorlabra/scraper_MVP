@@ -9,3 +9,44 @@ Create a DataProcessor class with deduplication methods using Pandas. Implement:
 
 # Test Strategy:
 Create test datasets with known duplicates in various formats. Verify all duplicates are correctly identified and the most complete records are preserved. Test with edge cases like slightly misspelled names.
+
+# Subtasks:
+## 1. Create DataProcessor class with exact matching deduplication [pending]
+### Dependencies: None
+### Description: Implement the DataProcessor class with methods for exact matching deduplication based on business names, phone numbers, and email addresses.
+### Details:
+1. Create a DataProcessor class with an initializer that accepts a pandas DataFrame.
+2. Implement a method `deduplicate_exact()` that identifies exact duplicates based on business names, phones, or emails.
+3. Add parameters to control which fields to use for matching (e.g., name_only, email_only, phone_only, or combinations).
+4. Implement logic to preserve the record with the most complete information when duplicates are found (count non-null values in each row).
+5. Return a cleaned DataFrame with duplicates removed.
+6. Add appropriate docstrings and type hints.
+7. Test with sample data containing exact duplicates to verify correct identification and removal.
+
+## 2. Implement fuzzy matching for business names [pending]
+### Dependencies: 6.1
+### Description: Add fuzzy matching capabilities to the DataProcessor class to identify similar business names that might be duplicates.
+### Details:
+1. Add the fuzzywuzzy library as a dependency.
+2. Implement a method `deduplicate_fuzzy()` that uses fuzzy string matching to identify similar business names.
+3. Add a threshold parameter to control the sensitivity of fuzzy matching (default 80).
+4. Implement a function to compare each business name against all others and calculate similarity scores.
+5. Group potential matches based on the threshold.
+6. Apply the same preservation logic from subtask 1 to keep the most complete record.
+7. Return a DataFrame with fuzzy duplicates removed.
+8. Test with sample data containing similar but not identical business names to verify correct matching and deduplication.
+
+## 3. Implement configurable deduplication rules and unified interface [pending]
+### Dependencies: 6.1, 6.2
+### Description: Create a unified deduplication interface with configurable rules combining exact and fuzzy matching with logical operators.
+### Details:
+1. Implement a method `deduplicate()` that serves as the main interface for all deduplication operations.
+2. Add parameters to configure deduplication rules (e.g., match on name AND location or phone only).
+3. Support logical operators in rules (AND, OR) for field combinations.
+4. Implement rule parsing to determine which fields to use and how to combine them.
+5. Integrate both exact and fuzzy matching approaches based on the configured rules.
+6. Add a parameter to control whether to use fuzzy matching and its threshold.
+7. Implement comprehensive logging to track which records were identified as duplicates and why.
+8. Return the final cleaned DataFrame.
+9. Test with complex scenarios using different rule combinations to ensure correct deduplication behavior.
+

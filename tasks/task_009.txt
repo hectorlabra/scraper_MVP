@@ -9,3 +9,49 @@ Extend the GoogleSheetsIntegration class to: 1) Convert processed DataFrame to t
 
 # Test Strategy:
 Test uploading various sizes of datasets. Verify data integrity by comparing source data with uploaded data. Test error recovery by simulating API failures during upload.
+
+# Subtasks:
+## 1. Implement DataFrame to Google Sheets Format Conversion [pending]
+### Dependencies: None
+### Description: Create methods to convert processed DataFrame data into the format required by Google Sheets API, including adding a timestamp column to track when data was added.
+### Details:
+Implementation steps:
+1. Add a new method `convert_dataframe_to_sheets_format(df, include_timestamp=True)` to the GoogleSheetsIntegration class
+2. Implement logic to convert DataFrame to a list of lists (rows) as required by Google Sheets API
+3. Add functionality to include a timestamp column when specified
+4. Handle data type conversions to ensure compatibility with Google Sheets
+5. Create unit tests with sample DataFrames to verify correct conversion
+6. Test with various DataFrame structures and data types
+7. Document the method with clear docstrings explaining parameters and return values
+
+## 2. Implement Sheet Update Functionality with Append/Overwrite Options [pending]
+### Dependencies: 9.1
+### Description: Create methods to update existing Google Sheets with new data, supporting both append and overwrite modes, and implementing proper formatting for headers and columns.
+### Details:
+Implementation steps:
+1. Add methods `append_to_sheet(sheet_id, data, range_name)` and `overwrite_sheet(sheet_id, data, range_name)` to the GoogleSheetsIntegration class
+2. Implement sheet existence validation before attempting updates
+3. Create a method to format spreadsheet headers and adjust column widths based on content
+4. Use the Google Sheets API to perform the actual updates
+5. Implement a helper method to determine the next empty row for append operations
+6. Add parameters to control formatting options (bold headers, freeze panes, etc.)
+7. Create integration tests that verify data is correctly written to test spreadsheets
+8. Test both append and overwrite functionality with various data sizes
+9. Document usage examples for both update modes
+
+## 3. Implement Batch Updates with Rate Limiting and Error Recovery [pending]
+### Dependencies: 9.1, 9.2
+### Description: Enhance the Google Sheets update functionality to handle API rate limits, implement batch updates for efficiency, and add error recovery mechanisms for failed uploads.
+### Details:
+Implementation steps:
+1. Research Google Sheets API rate limits and implement a rate limiting mechanism
+2. Create a `batch_update(sheet_id, data_chunks, mode='append')` method that splits large datasets into appropriate batch sizes
+3. Implement exponential backoff for API requests to handle rate limiting
+4. Add error handling that catches specific API exceptions (quota exceeded, network errors, etc.)
+5. Create a retry mechanism for failed batch uploads with configurable retry attempts
+6. Implement logging for successful updates, rate limit hits, and errors
+7. Add a recovery mechanism to track progress and resume from the last successful batch
+8. Create a method to validate the final upload by comparing row counts
+9. Test with large datasets that would trigger rate limits
+10. Document best practices for handling large data uploads
+

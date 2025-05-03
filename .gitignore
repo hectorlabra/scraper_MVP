@@ -27,4 +27,8 @@ node_modules/
 # Task files
 # Uncommenting to allow tracking task files
 # tasks.json
-# tasks/ 
+# tasks/
+
+# Added by Claude Task Master
+tasks.json
+tasks/ 
