@@ -36,18 +36,18 @@
       "subtasks": [
         {
           "id": 1,
-          "title": "Configuraci\u00f3n de undetected-chromedriver y Selenium",
-          "description": "Configurar el entorno de navegaci\u00f3n automatizada resistente a detecci\u00f3n",
-          "details": "Implementar la configuraci\u00f3n base de undetected-chromedriver y Selenium para evadir la detecci\u00f3n de bots. Esto incluye: 1) Instalar undetected-chromedriver, 2) Configurar opciones del navegador para minimizar la huella digital (disable-blink-features=AutomationControlled, etc.), 3) Implementar clases para inicializar y gestionar la sesi\u00f3n del navegador, 4) Crear m\u00e9todos de cierre controlado del navegador y gesti\u00f3n de recursos. Asegurar que la configuraci\u00f3n funciona en entornos headless y con interfaz gr\u00e1fica.",
+          "title": "Configuración de undetected-chromedriver y Selenium",
+          "description": "Configurar el entorno de navegación automatizada resistente a detección",
+          "details": "Implementar la configuración base de undetected-chromedriver y Selenium para evadir la detección de bots. Esto incluye: 1) Instalar undetected-chromedriver, 2) Configurar opciones del navegador para minimizar la huella digital (disable-blink-features=AutomationControlled, etc.), 3) Implementar clases para inicializar y gestionar la sesión del navegador, 4) Crear métodos de cierre controlado del navegador y gestión de recursos. Asegurar que la configuración funciona en entornos headless y con interfaz gráfica.",
           "status": "done",
           "dependencies": [],
           "parentTaskId": 3
         },
         {
           "id": 2,
-          "title": "Implementaci\u00f3n de estrategias anti-detecci\u00f3n",
-          "description": "Implementar estrategias anti-detecci\u00f3n y simulaci\u00f3n de comportamiento humano",
-          "details": "Crear una biblioteca de funciones para simular comportamiento humano en Google Maps: 1) Implementar patrones de scroll aleatorios (velocidad variable, pausas), 2) Simular movimientos de rat\u00f3n realistas, 3) Crear sistema de rotaci\u00f3n de User-Agents basado en navegadores modernos, 4) Implementar funciones de delay variables entre acciones (time.sleep() con tiempos aleatorios entre 3-10 segundos), 5) Crear funciones para realizar clics simulando comportamiento humano (con peque\u00f1os offsets aleatorios), 6) Implementar mecanismos para alternar entre diferentes patrones de navegaci\u00f3n para evitar patrones detectables.",
+          "title": "Implementación de estrategias anti-detección",
+          "description": "Implementar estrategias anti-detección y simulación de comportamiento humano",
+          "details": "Crear una biblioteca de funciones para simular comportamiento humano en Google Maps: 1) Implementar patrones de scroll aleatorios (velocidad variable, pausas), 2) Simular movimientos de ratón realistas, 3) Crear sistema de rotación de User-Agents basado en navegadores modernos, 4) Implementar funciones de delay variables entre acciones (time.sleep() con tiempos aleatorios entre 3-10 segundos), 5) Crear funciones para realizar clics simulando comportamiento humano (con pequeños offsets aleatorios), 6) Implementar mecanismos para alternar entre diferentes patrones de navegación para evitar patrones detectables.",
           "status": "done",
           "dependencies": [
             "3.1"
@@ -56,9 +56,9 @@
         },
         {
           "id": 3,
-          "title": "Funcionalidad de b\u00fasqueda en Google Maps",
-          "description": "Desarrollar funcionalidad de b\u00fasqueda en Google Maps",
-          "details": "Implementar m\u00e9todos para interactuar con la interfaz de b\u00fasqueda de Google Maps: 1) Navegaci\u00f3n segura a la URL de Google Maps, 2) Localizaci\u00f3n e interacci\u00f3n con el campo de b\u00fasqueda, 3) Implementar b\u00fasquedas por categor\u00eda y ubicaci\u00f3n (ej: 'restaurantes CDMX'), 4) Gestionar carga de p\u00e1gina y esperas din\u00e1micas (usando WebDriverWait para asegurar que los elementos est\u00e1n listos), 5) Manejar los diversos formatos de resultados de b\u00fasqueda que Google Maps puede presentar, 6) Implementar reintentos cuando la b\u00fasqueda falla. Asegurar que la funcionalidad se adapta a los cambios frecuentes de la interfaz de usuario de Google Maps.",
+          "title": "Funcionalidad de búsqueda en Google Maps",
+          "description": "Desarrollar funcionalidad de búsqueda en Google Maps",
+          "details": "Implementar métodos para interactuar con la interfaz de búsqueda de Google Maps: 1) Navegación segura a la URL de Google Maps, 2) Localización e interacción con el campo de búsqueda, 3) Implementar búsquedas por categoría y ubicación (ej: 'restaurantes CDMX'), 4) Gestionar carga de página y esperas dinámicas (usando WebDriverWait para asegurar que los elementos están listos), 5) Manejar los diversos formatos de resultados de búsqueda que Google Maps puede presentar, 6) Implementar reintentos cuando la búsqueda falla. Asegurar que la funcionalidad se adapta a los cambios frecuentes de la interfaz de usuario de Google Maps.",
           "status": "done",
           "dependencies": [
             "3.2"
@@ -67,9 +67,9 @@
         },
         {
           "id": 4,
-          "title": "Extracci\u00f3n de datos de listados de negocios",
-          "description": "Implementar extracci\u00f3n de datos de listados de negocios",
-          "details": "Desarrollar funciones para extraer informaci\u00f3n detallada de los listados de negocios: 1) Identificar y parsear nombres de negocios, 2) Extraer direcciones completas, 3) Obtener n\u00fameros de tel\u00e9fono (cuando est\u00e9n disponibles), 4) Recopilar URLs de sitios web, 5) Extraer valoraciones y n\u00famero de rese\u00f1as, 6) Capturar categor\u00edas de negocio, 7) Obtener horarios cuando est\u00e9n disponibles. Implementar selectors CSS/XPath robustos con alternativas para adaptarse a cambios en la estructura HTML. Asegurar que los datos se extraen de forma consistente y se manejan correctamente los campos faltantes.",
+          "title": "Extracción de datos de listados de negocios",
+          "description": "Implementar extracción de datos de listados de negocios",
+          "details": "Desarrollar funciones para extraer información detallada de los listados de negocios: 1) Identificar y parsear nombres de negocios, 2) Extraer direcciones completas, 3) Obtener números de teléfono (cuando estén disponibles), 4) Recopilar URLs de sitios web, 5) Extraer valoraciones y número de reseñas, 6) Capturar categorías de negocio, 7) Obtener horarios cuando estén disponibles. Implementar selectors CSS/XPath robustos con alternativas para adaptarse a cambios en la estructura HTML. Asegurar que los datos se extraen de forma consistente y se manejan correctamente los campos faltantes.",
           "status": "done",
           "dependencies": [
             "3.3"
@@ -78,9 +78,9 @@
         },
         {
           "id": 5,
-          "title": "Manejo de paginaci\u00f3n y navegaci\u00f3n por resultados",
-          "description": "Desarrollar manejo de paginaci\u00f3n y navegaci\u00f3n por resultados",
-          "details": "Implementar funcionalidad para navegar a trav\u00e9s de m\u00faltiples p\u00e1ginas de resultados: 1) Detectar y manejar el panel de resultados lateral, 2) Implementar scroll progresivo para cargar m\u00e1s resultados din\u00e1micamente, 3) Detectar cu\u00e1ndo se han cargado nuevos resultados, 4) Mantener registro de negocios ya procesados para evitar duplicados, 5) Implementar l\u00f3gica para determinar cu\u00e1ndo se han agotado los resultados, 6) A\u00f1adir opci\u00f3n para limitar la cantidad de p\u00e1ginas/resultados a procesar. La implementaci\u00f3n debe ser robusta frente a cambios en la carga de la p\u00e1gina y manejar correctamente los casos donde Google muestra diferentes formatos de resultados.",
+          "title": "Manejo de paginación y navegación por resultados",
+          "description": "Desarrollar manejo de paginación y navegación por resultados",
+          "details": "Implementar funcionalidad para navegar a través de múltiples páginas de resultados: 1) Detectar y manejar el panel de resultados lateral, 2) Implementar scroll progresivo para cargar más resultados dinámicamente, 3) Detectar cuándo se han cargado nuevos resultados, 4) Mantener registro de negocios ya procesados para evitar duplicados, 5) Implementar lógica para determinar cuándo se han agotado los resultados, 6) Añadir opción para limitar la cantidad de páginas/resultados a procesar. La implementación debe ser robusta frente a cambios en la carga de la página y manejar correctamente los casos donde Google muestra diferentes formatos de resultados.",
           "status": "done",
           "dependencies": [
             "3.4"
@@ -89,9 +89,9 @@
         },
         {
           "id": 6,
-          "title": "Detecci\u00f3n y manejo de bloqueos y CAPTCHAs",
-          "description": "Implementar detecci\u00f3n y manejo de bloqueos y CAPTCHAs",
-          "details": "Desarrollar sistema de detecci\u00f3n y respuesta a mecanismos anti-scraping de Google: 1) Implementar detecci\u00f3n de patrones de CAPTCHA en la p\u00e1gina, 2) Crear funci\u00f3n para identificar redirecciones sospechosas o p\u00e1ginas de bloqueo, 3) Desarrollar sistema de notificaci\u00f3n cuando se detecta un bloqueo, 4) Implementar estrategias de pausa temporal cuando se detectan patrones de bloqueo (esperar per\u00edodos m\u00e1s largos), 5) Crear l\u00f3gica para guardar el estado actual y poder reanudar m\u00e1s tarde, 6) Optimizar las t\u00e9cnicas anti-detecci\u00f3n cuando se encuentran bloqueos repetidos. El sistema debe minimizar el riesgo de bloqueo permanente de IPs mediante una estrategia progresiva de mitigaci\u00f3n.",
+          "title": "Detección y manejo de bloqueos y CAPTCHAs",
+          "description": "Implementar detección y manejo de bloqueos y CAPTCHAs",
+          "details": "Desarrollar sistema de detección y respuesta a mecanismos anti-scraping de Google: 1) Implementar detección de patrones de CAPTCHA en la página, 2) Crear función para identificar redirecciones sospechosas o páginas de bloqueo, 3) Desarrollar sistema de notificación cuando se detecta un bloqueo, 4) Implementar estrategias de pausa temporal cuando se detectan patrones de bloqueo (esperar períodos más largos), 5) Crear lógica para guardar el estado actual y poder reanudar más tarde, 6) Optimizar las técnicas anti-detección cuando se encuentran bloqueos repetidos. El sistema debe minimizar el riesgo de bloqueo permanente de IPs mediante una estrategia progresiva de mitigación.",
           "status": "done",
           "dependencies": [
             "3.5"
@@ -100,9 +100,9 @@
         },
         {
           "id": 7,
-          "title": "Integraci\u00f3n y finalizaci\u00f3n de GoogleMapsScraper",
+          "title": "Integración y finalización de GoogleMapsScraper",
           "description": "Integrar componentes y finalizar clase GoogleMapsScraper",
-          "details": "Integrar todos los componentes desarrollados en las subtareas anteriores en una clase GoogleMapsScraper completa y funcional: 1) Dise\u00f1ar una API clara y f\u00e1cil de usar para la clase, 2) Implementar constructor con opciones configurables (l\u00edmites de resultados, tiempos de espera, etc.), 3) Crear m\u00e9todo principal search() que coordine todo el proceso de scraping, 4) Implementar sistema de logging detallado para diagn\u00f3stico, 5) A\u00f1adir manejo de errores comprensivo con recuperaci\u00f3n autom\u00e1tica cuando sea posible, 6) Optimizar la gesti\u00f3n de recursos (cerrar navegadores correctamente), 7) Documentar la clase y m\u00e9todos extensamente. La clase final debe ser f\u00e1cil de usar, robusta y producir resultados consistentes en formato estandarizado (lista de diccionarios con campos uniformes).",
+          "details": "Integrar todos los componentes desarrollados en las subtareas anteriores en una clase GoogleMapsScraper completa y funcional: 1) Diseñar una API clara y fácil de usar para la clase, 2) Implementar constructor con opciones configurables (límites de resultados, tiempos de espera, etc.), 3) Crear método principal search() que coordine todo el proceso de scraping, 4) Implementar sistema de logging detallado para diagnóstico, 5) Añadir manejo de errores comprensivo con recuperación automática cuando sea posible, 6) Optimizar la gestión de recursos (cerrar navegadores correctamente), 7) Documentar la clase y métodos extensamente. La clase final debe ser fácil de usar, robusta y producir resultados consistentes en formato estandarizado (lista de diccionarios con campos uniformes).",
           "status": "done",
           "dependencies": [
             "3.6"
@@ -115,7 +115,7 @@
       "id": 4,
       "title": "Public Directories Scraper Implementation",
       "description": "Create modules to scrape business data from public directories",
-      "status": "pending",
+      "status": "done",
       "dependencies": [
         2
       ],
@@ -128,7 +128,7 @@
           "title": "Research and select target public directories",
           "description": "Research and select public business directories to target in LATAM (e.g., Yellow Pages, Chambers of Commerce, industry-specific directories).",
           "details": "",
-          "status": "pending",
+          "status": "done",
           "dependencies": [],
           "parentTaskId": 4
         },
@@ -137,7 +137,7 @@
           "title": "Create base DirectoryScraper class",
           "description": "Create a base DirectoryScraper class with common scraping functionality for all directory implementations.",
           "details": "",
-          "status": "pending",
+          "status": "done",
           "dependencies": [
             "4.1"
           ],
@@ -148,7 +148,7 @@
           "title": "Implement first directory-specific scraper",
           "description": "Implement the first directory-specific scraper by extending the base class.",
           "details": "",
-          "status": "pending",
+          "status": "done",
           "dependencies": [
             "4.2"
           ],
@@ -159,7 +159,7 @@
           "title": "Implement second directory-specific scraper",
           "description": "Implement the second directory-specific scraper by extending the base class.",
           "details": "",
-          "status": "pending",
+          "status": "done",
           "dependencies": [
             "4.2"
           ],
@@ -170,7 +170,7 @@
           "title": "Implement pagination and result collection",
           "description": "Add pagination handling and result collection for each directory scraper.",
           "details": "",
-          "status": "pending",
+          "status": "done",
           "dependencies": [
             "4.3",
             "4.4"
@@ -182,7 +182,7 @@
           "title": "Define directory data structure",
           "description": "Create unified data structure for storing scraped directory data consistently.",
           "details": "",
-          "status": "pending",
+          "status": "done",
           "dependencies": [
             "4.5"
           ],
@@ -193,7 +193,7 @@
           "title": "Integrate directory results with data processing",
           "description": "Connect public directory scraper output to the main data processing pipeline.",
           "details": "",
-          "status": "pending",
+          "status": "done",
           "dependencies": [
             "4.6"
           ],
