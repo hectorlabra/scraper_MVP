@@ -26,7 +26,14 @@ from selenium.common.exceptions import (
 from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium import webdriver
-import undetected_chromedriver as uc
+try:
+    import undetected_chromedriver as uc
+except ImportError:
+    uc = None
+    import logging as _logging
+    _logging.getLogger(__name__).warning(
+        "undetected_chromedriver not installed; Chrome scraper functionality may be limited"
+    )
 from dotenv import load_dotenv
 
 # Local imports
