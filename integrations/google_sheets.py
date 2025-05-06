@@ -1031,3 +1031,392 @@ class GoogleSheetsIntegration:
             logger.warning(f"No access to Google Drive API: {e}")
         
         return result
+    
+    def convert_dataframe_to_sheets_format(self, 
+                                          df: pd.DataFrame,
+                                          include_timestamp: bool = True,
+                                          timestamp_column: str = "timestamp",
+                                          timestamp_format: str = "%Y-%m-%d %H:%M:%S") -> List[List[Any]]:
+        """
+        Convert a DataFrame to the format required by Google Sheets API.
+        
+        Args:
+            df: The DataFrame to convert
+            include_timestamp: Whether to include a timestamp column
+            timestamp_column: Name of the timestamp column to add
+            timestamp_format: Format for the timestamp
+            
+        Returns:
+            List of lists (rows) formatted for Google Sheets API
+            
+        Raises:
+            ValueError: If the DataFrame is empty
+        """
+        if df.empty:
+            raise ValueError("Cannot convert empty DataFrame")
+        
+        # Make a copy to avoid modifying the original DataFrame
+        df_copy = df.copy()
+        
+        # Add timestamp column if requested
+        current_time = datetime.datetime.now().strftime(timestamp_format)
+        if include_timestamp and timestamp_column not in df_copy.columns:
+            df_copy[timestamp_column] = current_time
+        
+        # Convert DataFrame to list of lists format required by Google Sheets
+        headers = df_copy.columns.tolist()
+        rows = df_copy.values.tolist()
+        
+        # Insert headers as the first row
+        sheets_data = [headers] + rows
+        
+        # Replace NaN and None values with empty strings for Google Sheets compatibility
+        for i, row in enumerate(sheets_data):
+            sheets_data[i] = ['' if pd.isna(cell) or cell is None else cell for cell in row]
+            
+        logger.debug(f"Converted DataFrame with {len(rows)} rows and {len(headers)} columns to Google Sheets format")
+        return sheets_data
+    
+    def format_worksheet(self,
+                     worksheet_name: str,
+                     bold_header: bool = True,
+                     freeze_header: bool = True,
+                     autofit_columns: bool = True,
+                     number_format: Optional[Dict[str, str]] = None) -> bool:
+        """
+        Format a worksheet with various styling options.
+        
+        Args:
+            worksheet_name: Name of the worksheet to format
+            bold_header: Whether to make the header row bold
+            freeze_header: Whether to freeze the header row
+            autofit_columns: Whether to automatically adjust column widths based on content
+            number_format: Dictionary mapping column names to number formats
+                           Example: {'Price': '0.00', 'Quantity': '0'}
+            
+        Returns:
+            Boolean indicating if the operation was successful
+            
+        Raises:
+            RuntimeError: If not authenticated or worksheet doesn't exist
+        """
+        self._ensure_authenticated()
+        
+        # Get the worksheet
+        worksheet = self.get_worksheet(worksheet_name, create_if_missing=False)
+        
+        try:
+            # Get current worksheet data to determine dimensions
+            data = worksheet.get_all_values()
+            if not data:
+                logger.warning(f"Worksheet '{worksheet_name}' is empty, nothing to format")
+                return False
+                
+            header_row = data[0]
+            
+            # Format the header row (bold)
+            if bold_header:
+                header_cells = worksheet.range(1, 1, 1, len(header_row))
+                for cell in header_cells:
+                    cell.value = cell.value  # Keep the same value
+                    
+                # Use batch update to set the bold format
+                format_request = {
+                    "requests": [
+                        {
+                            "repeatCell": {
+                                "range": {
+                                    "sheetId": worksheet.id,
+                                    "startRowIndex": 0,
+                                    "endRowIndex": 1,
+                                    "startColumnIndex": 0,
+                                    "endColumnIndex": len(header_row)
+                                },
+                                "cell": {
+                                    "userEnteredFormat": {
+                                        "textFormat": {
+                                            "bold": True
+                                        }
+                                    }
+                                },
+                                "fields": "userEnteredFormat.textFormat.bold"
+                            }
+                        }
+                    ]
+                }
+                self.spreadsheet.batch_update(format_request)
+            
+            # Freeze the header row
+            if freeze_header:
+                worksheet.freeze(rows=1)
+            
+            # Auto-resize columns
+            if autofit_columns and len(data) > 0:
+                # Get column widths based on content
+                column_widths = []
+                for col_idx, header in enumerate(header_row):
+                    # Start with header width
+                    max_width = len(str(header))
+                    
+                    # Find the maximum width in this column
+                    for row in data[1:]:  # Skip header row
+                        if col_idx < len(row):
+                            cell_value = str(row[col_idx])
+                            max_width = max(max_width, min(len(cell_value), 200))  # Cap at 200 chars
+                    
+                    # Add some padding
+                    column_widths.append(max_width + 2)
+                
+                # Set column widths
+                for i, width in enumerate(column_widths):
+                    # Create column resize request
+                    resize_request = {
+                        "requests": [
+                            {
+                                "updateDimensionProperties": {
+                                    "range": {
+                                        "sheetId": worksheet.id,
+                                        "dimension": "COLUMNS",
+                                        "startIndex": i,
+                                        "endIndex": i + 1
+                                    },
+                                    "properties": {
+                                        "pixelSize": width * 8  # Approximate pixel width
+                                    },
+                                    "fields": "pixelSize"
+                                }
+                            }
+                        ]
+                    }
+                self.spreadsheet.batch_update(resize_request)
+            # Apply number formats if provided
+            if number_format:
+                fmt_requests = []
+                for col_name, pattern in number_format.items():
+                    if col_name in header_row:
+                        idx = header_row.index(col_name)
+                        fmt_requests.append({
+                            "repeatCell": {
+                                "range": {
+                                    "sheetId": worksheet.id,
+                                    "startRowIndex": 1,
+                                    "endRowIndex": len(data),
+                                    "startColumnIndex": idx,
+                                    "endColumnIndex": idx + 1
+                                },
+                                "cell": {
+                                    "userEnteredFormat": {
+                                        "numberFormat": {
+                                            "type": "NUMBER",
+                                            "pattern": pattern
+                                        }
+                                    }
+                                },
+                                "fields": "userEnteredFormat.numberFormat"
+                            }
+                        })
+                if fmt_requests:
+                    self.spreadsheet.batch_update({"requests": fmt_requests})
+            return True
+            
+            # Apply number formats if specified
+            if number_format and len(data) > 1:  # At least header + 1 row
+                for col_name, format_str in number_format.items():
+                    # Find the column index
+                    try:
+                        col_idx = header_row.index(col_name)
+                        
+                        # Apply number format to the entire column (except header)
+                        format_request = {
+                            "requests": [
+                                {
+                                    "repeatCell": {
+                                        "range": {
+                                            "sheetId": worksheet.id,
+                                            "startRowIndex": 1,  # Skip header
+                                            "endRowIndex": len(data),
+                                            "startColumnIndex": col_idx,
+                                            "endColumnIndex": col_idx + 1
+                                        },
+                                        "cell": {
+                                            "userEnteredFormat": {
+                                                "numberFormat": {
+                                                    "type": "NUMBER",
+                                                    "pattern": format_str
+                                                }
+                                            }
+                                        },
+                                        "fields": "userEnteredFormat.numberFormat"
+                                    }
+                                }
+                            ]
+                        }
+                        self.spreadsheet.batch_update(format_request)
+                    except ValueError:
+                        logger.warning(f"Column '{col_name}' not found in worksheet")
+            
+            logger.info(f"Successfully formatted worksheet '{worksheet_name}'")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error formatting worksheet: {str(e)}")
+            raise
+    
+    def batch_update_data(self,
+                       data: Union[List[Dict[str, Any]], pd.DataFrame],
+                       worksheet_name: str,
+                       batch_size: int = 1000,
+                       mode: str = 'append',
+                       rate_limit_pause: float = 1.0) -> Dict[str, int]:
+        """
+        Update a worksheet with large datasets by splitting into manageable batches.
+        
+        This method is designed for large datasets that might exceed API limits if
+        uploaded in a single operation. It splits the data into smaller batches and
+        handles rate limiting automatically.
+        
+        Args:
+            data: DataFrame or list of dictionaries containing the data
+            worksheet_name: Name of the worksheet to update
+            batch_size: Maximum number of rows per batch
+            mode: Update mode ('append' or 'overwrite')
+            rate_limit_pause: Pause between batches in seconds to avoid rate limits
+            
+        Returns:
+            Dictionary with statistics about the operation:
+            {
+                'total_rows': Total number of rows processed,
+                'batches': Number of batches used,
+                'errors': Number of batches that failed
+            }
+            
+        Raises:
+            RuntimeError: If not authenticated
+            ValueError: If data is empty or mode is invalid
+        """
+        self._ensure_authenticated()
+        
+        # Validate mode
+        valid_modes = ['append', 'overwrite']
+        if mode not in valid_modes:
+            raise ValueError(f"Invalid mode: {mode}. Must be one of {valid_modes}")
+        
+        # Convert DataFrame to list of dictionaries if needed
+        if isinstance(data, pd.DataFrame):
+            data_dict = data.to_dict(orient='records')
+        else:
+            data_dict = data
+            
+        if not data_dict:
+            logger.warning("No data to upload")
+            return {'total_rows': 0, 'batches': 0, 'errors': 0}
+            
+        # Initialize statistics
+        stats = {'total_rows': len(data_dict), 'batches': 0, 'errors': 0}
+        
+        # Get the worksheet
+        worksheet = self.get_worksheet(worksheet_name)
+        
+        # If overwrite mode, clear the worksheet at the beginning
+        if mode == 'overwrite':
+            worksheet.clear()
+            # Also clear cache for this worksheet if caching is enabled
+            if self.enable_caching and worksheet_name in self._worksheet_cache:
+                del self._worksheet_cache[worksheet_name]
+        
+        # Get column headers from the first row
+        headers = list(data_dict[0].keys())
+        
+        # Split data into batches
+        batches = []
+        current_batch = []
+        
+        for item in data_dict:
+            current_batch.append(item)
+            if len(current_batch) >= batch_size:
+                batches.append(current_batch)
+                current_batch = []
+                
+        # Add any remaining items as the last batch
+        if current_batch:
+            batches.append(current_batch)
+            
+        # Process each batch
+        for batch_index, batch in enumerate(batches):
+            stats['batches'] += 1
+            logger.info(f"Processing batch {batch_index + 1}/{len(batches)} ({len(batch)} rows)")
+            
+            # Convert batch to list of lists
+            batch_values = [headers] if batch_index == 0 else []  # Only include headers in first batch
+            for item in batch:
+                row = [item.get(header, "") for header in headers]
+                batch_values.append(row)
+                
+            # Calculate the starting row for this batch
+            if mode == 'append':
+                if batch_index == 0 and worksheet.row_count <= 1:
+                    # First batch and empty worksheet - just update
+                    start_row = 1
+                elif batch_index == 0:
+                    # First batch with existing data - get the last row
+                    existing_data = worksheet.get_all_values()
+                    start_row = len(existing_data) + 1
+                else:
+                    # Subsequent batches - calculate from previous batches
+                    start_row += len(batches[batch_index-1])
+            else:  # overwrite mode
+                if batch_index == 0:
+                    start_row = 1  # Start at the beginning
+                else:
+                    # Subsequent batches - calculate from previous batches plus 1 for header
+                    start_row = 1 + sum(len(b) for b in batches[:batch_index])
+                    
+            # Try to upload this batch with exponential backoff for rate limiting
+            success = False
+            for attempt in range(self.MAX_RETRIES):
+                try:
+                    if batch_index == 0 and mode == 'overwrite':
+                        # For first batch in overwrite mode, just update
+                        worksheet.update(batch_values)
+                    else:
+                        # For append mode or subsequent batches, use range update
+                        if start_row == 1 and batch_index == 0:
+                            # First batch and starting from beginning
+                            worksheet.update(batch_values)
+                        else:
+                            # Calculate the range for this batch
+                            last_column = chr(65 + len(headers) - 1)  # Convert to letter (A, B, C, etc.)
+                            range_name = f'A{start_row}:{last_column}{start_row + len(batch_values) - 1}'
+                            worksheet.update(range_name, batch_values)
+                    
+                    success = True
+                    break
+                except gspread.exceptions.APIError as e:
+                    if attempt < self.MAX_RETRIES - 1 and e.response.status_code == 429:
+                        # Rate limiting - wait and retry with exponential backoff
+                        backoff_time = self.RETRY_DELAY * (2 ** attempt)
+                        logger.warning(f"Rate limit hit, retrying in {backoff_time:.1f} seconds")
+                        time.sleep(backoff_time)
+                    else:
+                        raise
+                except Exception as e:
+                    logger.error(f"Error uploading batch {batch_index + 1}: {str(e)}")
+                    stats['errors'] += 1
+                    break
+                    
+            if not success:
+                stats['errors'] += 1
+                
+            # Pause between batches to avoid rate limiting
+            if batch_index < len(batches) - 1:  # Don't pause after the last batch
+                time.sleep(rate_limit_pause)
+        
+        # Update last sync timestamp
+        self._last_sync_timestamp = datetime.datetime.now()
+        
+        # Clear cache for this worksheet if caching is enabled
+        if self.enable_caching and worksheet_name in self._worksheet_cache:
+            del self._worksheet_cache[worksheet_name]
+            
+        logger.info(f"Batch update complete: {stats['total_rows']} rows in {stats['batches']} batches with {stats['errors']} errors")
+        return stats
