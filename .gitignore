@@ -74,8 +74,8 @@ temp/
 # tasks/
 
 # Added by Claude Task Master
-tasks.json
-tasks/
+# tasks.json
+# tasks/
 
 # Sensitive configuration files
 config/scrapermvp-f254174c1385.json

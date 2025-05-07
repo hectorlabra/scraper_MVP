@@ -301,7 +301,7 @@
       "id": 7,
       "title": "Data Processing Module - Validation",
       "description": "Implement data validation and formatting for phone numbers and emails",
-      "status": "pending",
+      "status": "done",
       "dependencies": [
         6
       ],
@@ -437,7 +437,7 @@
       "id": 10,
       "title": "Main Script Integration",
       "description": "Create the main script that orchestrates the entire workflow",
-      "status": "pending",
+      "status": "completed",
       "dependencies": [
         3,
         4,
