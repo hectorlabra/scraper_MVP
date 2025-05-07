@@ -1070,9 +1070,21 @@ class GoogleSheetsIntegration:
         # Insert headers as the first row
         sheets_data = [headers] + rows
         
-        # Replace NaN and None values with empty strings for Google Sheets compatibility
+        # Replace NaN/None, serialize dicts, and ensure primitive types for Google Sheets
+        import json
         for i, row in enumerate(sheets_data):
-            sheets_data[i] = ['' if pd.isna(cell) or cell is None else cell for cell in row]
+            new_row = []
+            for cell in row:
+                if pd.isna(cell) or cell is None:
+                    new_row.append('')
+                elif isinstance(cell, dict):
+                    new_row.append(json.dumps(cell))
+                elif isinstance(cell, bool):
+                    # Keep booleans as string
+                    new_row.append(str(cell))
+                else:
+                    new_row.append(cell)
+            sheets_data[i] = new_row
             
         logger.debug(f"Converted DataFrame with {len(rows)} rows and {len(headers)} columns to Google Sheets format")
         return sheets_data

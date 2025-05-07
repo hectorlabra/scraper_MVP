@@ -193,6 +193,29 @@ processor.deduplicate(rules=rules)
   - Using exact columns to narrow down comparison groups
   - Increasing the similarity threshold to reduce potential matches
   - Using the python-Levenshtein package for faster fuzzy matching
+  - For very large datasets (>50,000 records), use the `deduplicate_large_dataset` method
+
+### Large Dataset Processing
+
+For extremely large datasets, use the optimized method:
+
+```python
+processor.deduplicate_large_dataset(
+    match_fields=['business_name', 'phone', 'email'],
+    threshold=80,                # Similarity threshold
+    use_parallel=True,           # Use parallel processing
+    batch_size=5000              # Size of processing batches
+)
+```
+
+This method provides:
+
+- Batched processing to manage memory usage
+- Parallel execution across multiple CPU cores
+- Optimized similarity detection algorithm
+- Better scalability for datasets with 50,000+ records
+
+See [Large Dataset Deduplication](large_dataset_deduplication.md) for detailed documentation.
 
 ## Logging
 

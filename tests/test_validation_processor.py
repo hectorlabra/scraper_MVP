@@ -133,9 +133,10 @@ class TestValidationProcessor(unittest.TestCase):
             'email': 'info@alphatech.com',
             'location': 'Mexico City, Mexico',
             'industry': 'Technology',
-            'website': 'https://alphatech.com'
+            'website': 'https://alphatech.com',
+            'description': 'A complete description for testing.' # Added description
         }
-        
+    
         partial_record = {
             'business_name': 'Beta Services',
             'phone': '+55 11 91234-5678',
@@ -156,10 +157,14 @@ class TestValidationProcessor(unittest.TestCase):
         
         # Test scores with default weights
         self.assertEqual(self.processor.calculate_data_quality_score(complete_record), 100.0)
-        self.assertLess(self.processor.calculate_data_quality_score(partial_record), 100.0)
-        self.assertLess(self.processor.calculate_data_quality_score(minimal_record), 
-                        self.processor.calculate_data_quality_score(partial_record))
-        
+        # For partial_record, let's calculate expected score:
+        # business_name: 15, phone: 25, location: 15. Total = 55
+        # Weights: business_name: 15, phone: 25, email: 25, location: 15, website: 10, industry: 5, description: 5. Total = 100
+        # Expected: (15+25+15)/100 * 100 = 55.0
+        self.assertEqual(self.processor.calculate_data_quality_score(partial_record), 55.0) 
+        # For minimal_record: only business_name: 15. Expected: 15.0
+        self.assertEqual(self.processor.calculate_data_quality_score(minimal_record), 15.0)
+
         # Test with custom weights
         weights = {
             'business_name': 20,
@@ -182,30 +187,31 @@ class TestValidationProcessor(unittest.TestCase):
             'phone': '+52 55 1234 5678',
             'email': 'info@alphatech.com'
         }
-        
-        suspicious_email = {
+    
+        suspicious_email_record = { # Renamed for clarity
             'business_name': 'Test Company',
             'phone': '+55 11 91234-5678',
             'email': 'test@test.com'  # Generic/suspicious
         }
-        
-        suspicious_phone = {
+    
+        suspicious_phone_record = { # Renamed for clarity
             'business_name': 'Dummy Corp',
             'phone': '1234567890',  # Sequential/simple
             'email': 'info@example.com'
         }
-        
+    
         # Test flagging
         valid_flags = self.processor.flag_suspicious_data(valid_record)
-        self.assertEqual(len(valid_flags), 0)  # No flags for valid record
-        
-        suspicious_email_flags = self.processor.flag_suspicious_data(suspicious_email)
-        self.assertGreater(len(suspicious_email_flags), 0)
-        self.assertIn('email', suspicious_email_flags)
-        
-        suspicious_phone_flags = self.processor.flag_suspicious_data(suspicious_phone)
-        self.assertGreater(len(suspicious_phone_flags), 0)
-        self.assertIn('phone', suspicious_phone_flags)
+        self.assertFalse(valid_flags['suspicious_email']) # Check value
+        self.assertFalse(valid_flags['suspicious_phone']) # Check value
+    
+        email_flags = self.processor.flag_suspicious_data(suspicious_email_record)
+        self.assertTrue(email_flags['suspicious_email'])
+        self.assertFalse(email_flags['suspicious_phone'])
+    
+        phone_flags = self.processor.flag_suspicious_data(suspicious_phone_record)
+        self.assertFalse(phone_flags['suspicious_email'])
+        self.assertTrue(phone_flags['suspicious_phone'])
 
     def test_validate_record(self):
         """Test the complete validation pipeline"""
@@ -214,9 +220,12 @@ class TestValidationProcessor(unittest.TestCase):
             'business_name': 'Alpha Tech',
             'phone': '+52 55 1234 5678',
             'email': 'info@alphatech.com',
-            'location': 'Mexico City, Mexico'
+            'location': 'Mexico City, Mexico',
+            'website': 'https://alphatech.com', # Added
+            'industry': 'Technology',          # Added
+            'description': 'Valid description.' # Added
         }
-        
+    
         invalid_record = {
             'business_name': 'Test Company',
             'phone': 'abcdefghij',  # Invalid
@@ -224,18 +233,27 @@ class TestValidationProcessor(unittest.TestCase):
             'location': ''
         }
         
-        # Test full validation
+        # Test full validation for valid_record
         valid_result = self.processor.validate_record(valid_record)
         self.assertTrue(valid_result['is_valid'])
         self.assertEqual(valid_result['score'], 100.0)
+        self.assertFalse(valid_result['flags']['suspicious_email'])
+        self.assertFalse(valid_result['flags']['suspicious_phone'])
         
+        # Test full validation for invalid_record
         invalid_result = self.processor.validate_record(invalid_record)
         self.assertFalse(invalid_result['is_valid'])
-        self.assertLess(invalid_result['score'], 100.0)
-        self.assertGreater(len(invalid_result['flags']), 0)
-        # Check for individual flags in invalid record
-        invalid_fields = [key for key in invalid_result['flags'].keys()]
-        self.assertIn('phone', invalid_fields)
+        # Score for invalid_record: business_name (15) + location (0, it's empty). Other fields are invalid or missing.
+        # Expected score: 15.0
+        self.assertEqual(invalid_result['score'], 15.0) 
+        
+        # Check validation details for invalid_record
+        self.assertFalse(invalid_result['validation_details']['email_valid'])
+        self.assertFalse(invalid_result['validation_details']['phone_valid'])
+
+        # Check flags for invalid_record: 'notanemail' and 'abcdefghij' are invalid but not necessarily suspicious by pattern
+        self.assertFalse(invalid_result['flags']['suspicious_email'])
+        self.assertFalse(invalid_result['flags']['suspicious_phone'])
 
     def test_process_dataframe(self):
         """Test processing an entire DataFrame"""

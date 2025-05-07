@@ -266,6 +266,28 @@ def load_config_from_env(prefix: str = "") -> Dict[str, Any]:
             
     return config
 
+def load_config_from_env() -> Dict[str, Any]:
+    """
+    Load configuration settings from environment variables.
+    
+    Returns:
+        Dictionary with configuration values
+    """
+    config = {
+        "app_name": os.environ.get("APP_NAME", "LeadScraper LATAM"),
+        "app_version": os.environ.get("APP_VERSION", "1.0.0"),
+        "app_env": os.environ.get("APP_ENV", "development"),
+        "log_level": os.environ.get("LOG_LEVEL", "INFO"),
+        "log_file": os.environ.get("LOG_FILE", ""),
+        "timeout": int(os.environ.get("TIMEOUT", "30")),
+        "retry_count": int(os.environ.get("RETRY_COUNT", "3")),
+        "use_proxy": os.environ.get("USE_PROXY", "False").lower() == "true",
+        "proxy_url": os.environ.get("PROXY_URL", ""),
+        "headless_browser": os.environ.get("HEADLESS_BROWSER", "True").lower() == "true"
+    }
+    
+    return config
+
 def retry_on_failure(max_retries: int = 3, 
                      delay: float = 1.0,
                      backoff_factor: float = 2.0,
@@ -324,43 +346,67 @@ def clean_text(text: Optional[str]) -> Optional[str]:
     
     return text
 
-def extract_phone_numbers(text: str) -> List[str]:
+def extract_phone_numbers(text: str, country_code: str = None) -> List[str]:
     """
     Extract phone numbers from text.
     
     Args:
         text: Text to extract phone numbers from
+        country_code: Optional country code to prepend to numbers without one
         
     Returns:
-        List of extracted phone numbers
+        List of phone numbers found
     """
     if not text:
         return []
-        
-    # Pattern to match common LATAM phone number formats
-    # This is a simplified pattern and might need adjustment for specific countries
-    pattern = r'(?:\+?(?:1|5[0-9])?[-.\s]?)?(?:\(?\d{3}\)?[-.\s]?)?\d{3}[-.\s]?\d{4}'
     
-    matches = re.findall(pattern, text)
-    return [clean_text(match) for match in matches if match]
+    # Basic phone number pattern
+    # This handles various formats like:
+    # +1 (123) 456-7890, (123) 456-7890, 123-456-7890, 123.456.7890, 123 456 7890
+    phone_pattern = r'(?:\+\d{1,3}[-.\s]?)?\(?(?:\d{1,3})\)?[-.\s]?(?:\d{2,3})[-.\s]?(?:\d{2,5})'
+    
+    phones = re.findall(phone_pattern, text)
+    
+    # Clean up the phone numbers
+    cleaned_phones = []
+    for phone in phones:
+        # Remove non-digit characters except for leading +
+        cleaned = re.sub(r'(?<!^\+)\D', '', phone)
+        
+        # Add country code if specified and not already present
+        if country_code and not cleaned.startswith('+') and not cleaned.startswith(country_code):
+            cleaned = country_code + cleaned
+        
+        # Add to list if not already present (case-insensitive)
+        if cleaned and cleaned not in cleaned_phones:
+            cleaned_phones.append(cleaned)
+    
+    return cleaned_phones
 
 def extract_emails(text: str) -> List[str]:
     """
     Extract email addresses from text.
     
     Args:
-        text: Text to extract email addresses from
+        text: Text to extract emails from
         
     Returns:
-        List of extracted email addresses
+        List of email addresses found
     """
     if not text:
         return []
-        
-    pattern = r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'
     
-    matches = re.findall(pattern, text)
-    return [match.lower() for match in matches if match]
+    # RFC 5322 compliant email regex
+    email_pattern = r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'
+    emails = re.findall(email_pattern, text)
+    
+    # Remove duplicates while preserving order
+    unique_emails = []
+    for email in emails:
+        if email.lower() not in [e.lower() for e in unique_emails]:
+            unique_emails.append(email)
+    
+    return unique_emails
 
 def extract_urls(text: str) -> List[str]:
     """
@@ -491,6 +537,46 @@ def create_logger(name: str,
     
     return logger
 
+def setup_logger(name, log_file=None, console=True, log_level="INFO"):
+    """
+    Set up logger with file and console handlers.
+    
+    Args:
+        name: Logger name
+        log_file: Path to log file (optional)
+        console: Whether to log to console
+        log_level: Logging level
+    
+    Returns:
+        Configured logger
+    """
+    # Convert string log level to logging constant
+    numeric_level = getattr(logging, log_level.upper(), logging.INFO)
+    
+    # Create logger
+    logger = logging.getLogger(name)
+    logger.setLevel(numeric_level)
+    logger.handlers = []  # Clear existing handlers
+    
+    # Create formatter
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    
+    # Add file handler if specified
+    if log_file:
+        file_handler = logging.FileHandler(log_file)
+        file_handler.setLevel(numeric_level)
+        file_handler.setFormatter(formatter)
+        logger.addHandler(file_handler)
+    
+    # Add console handler if specified
+    if console:
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(numeric_level)
+        console_handler.setFormatter(formatter)
+        logger.addHandler(console_handler)
+    
+    return logger
+
 def validate_email(email: str) -> bool:
     """
     Validate an email address using a more comprehensive regex.
@@ -615,3 +701,23 @@ def extract_domain(url: str) -> Optional[str]:
         return domain
     except Exception:
         return None
+
+def sanitize_text(text: str) -> str:
+    """
+    Sanitize text by removing extra whitespace and normalizing special characters.
+    
+    Args:
+        text: The input text to sanitize
+        
+    Returns:
+        Sanitized text string
+    """
+    if not text:
+        return ""
+    
+    # Replace newlines, tabs, and multiple spaces with a single space
+    sanitized = re.sub(r'\s+', ' ', str(text))
+    # Remove leading/trailing whitespace
+    sanitized = sanitized.strip()
+    
+    return sanitized

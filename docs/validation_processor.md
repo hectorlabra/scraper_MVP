@@ -170,3 +170,40 @@ Make sure these are installed in your environment:
 ```bash
 pip install pandas phonenumbers pycountry fuzzywuzzy python-Levenshtein
 ```
+
+## Integration with Main Workflow
+
+The ValidationProcessor class is designed to be easily integrated into the main workflow of the project. Here's how to use it in the main data processing pipeline:
+
+```python
+from processing.data_processor import ValidationProcessor
+
+# Load your data into a DataFrame
+df = pd.DataFrame(leads_data)
+
+# Initialize the ValidationProcessor
+validator = ValidationProcessor(df)
+
+# Validate emails
+df = validator.validate_emails()
+
+# Validate phone numbers
+df = validator.validate_phone_numbers()
+
+# Process the entire dataset (performs validation, formatting, and scoring)
+processed_df = validator.process()
+
+# Filter by quality score
+high_quality_df = validator.filter_by_quality_score(min_score=0.7) # 70%
+
+# Output includes columns:
+# - email_valid: Boolean indicating valid email
+# - phone_valid: Boolean indicating valid phone
+# - email_formatted: Formatted email address
+# - phone_formatted: Formatted phone number
+# - validation_score: Data quality score (0-100)
+# - validation_flags: Dictionary of suspicious data flags
+# - is_valid: Overall validity of the record
+```
+
+The ValidationProcessor integrates with the existing `process_data` function in the main workflow, which handles both deduplication and validation stages.

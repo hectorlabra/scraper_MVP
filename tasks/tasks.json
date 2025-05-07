@@ -253,7 +253,7 @@
       "id": 6,
       "title": "Data Processing Module - Deduplication",
       "description": "Implement functionality to identify and remove duplicate leads",
-      "status": "pending",
+      "status": "completed",
       "dependencies": [
         3,
         4,
@@ -269,7 +269,7 @@
           "description": "Implement the DataProcessor class with methods for exact matching deduplication based on business names, phone numbers, and email addresses.",
           "dependencies": [],
           "details": "1. Create a DataProcessor class with an initializer that accepts a pandas DataFrame.\n2. Implement a method `deduplicate_exact()` that identifies exact duplicates based on business names, phones, or emails.\n3. Add parameters to control which fields to use for matching (e.g., name_only, email_only, phone_only, or combinations).\n4. Implement logic to preserve the record with the most complete information when duplicates are found (count non-null values in each row).\n5. Return a cleaned DataFrame with duplicates removed.\n6. Add appropriate docstrings and type hints.\n7. Test with sample data containing exact duplicates to verify correct identification and removal.",
-          "status": "pending",
+          "status": "completed",
           "parentTaskId": 6
         },
         {
@@ -280,7 +280,7 @@
             1
           ],
           "details": "1. Add the fuzzywuzzy library as a dependency.\n2. Implement a method `deduplicate_fuzzy()` that uses fuzzy string matching to identify similar business names.\n3. Add a threshold parameter to control the sensitivity of fuzzy matching (default 80).\n4. Implement a function to compare each business name against all others and calculate similarity scores.\n5. Group potential matches based on the threshold.\n6. Apply the same preservation logic from subtask 1 to keep the most complete record.\n7. Return a DataFrame with fuzzy duplicates removed.\n8. Test with sample data containing similar but not identical business names to verify correct matching and deduplication.",
-          "status": "pending",
+          "status": "completed",
           "parentTaskId": 6
         },
         {
@@ -292,7 +292,7 @@
             2
           ],
           "details": "1. Implement a method `deduplicate()` that serves as the main interface for all deduplication operations.\n2. Add parameters to configure deduplication rules (e.g., match on name AND location or phone only).\n3. Support logical operators in rules (AND, OR) for field combinations.\n4. Implement rule parsing to determine which fields to use and how to combine them.\n5. Integrate both exact and fuzzy matching approaches based on the configured rules.\n6. Add a parameter to control whether to use fuzzy matching and its threshold.\n7. Implement comprehensive logging to track which records were identified as duplicates and why.\n8. Return the final cleaned DataFrame.\n9. Test with complex scenarios using different rule combinations to ensure correct deduplication behavior.",
-          "status": "pending",
+          "status": "completed",
           "parentTaskId": 6
         }
       ]
@@ -315,7 +315,7 @@
           "description": "Extend the DataProcessor class with methods to validate email formats using regular expressions",
           "dependencies": [],
           "details": "1. Create a new method `validateEmail(email)` in the DataProcessor class that returns a boolean indicating validity\n2. Implement regex patterns that validate standard email formats (username@domain.tld)\n3. Handle edge cases like subdomains, special characters in usernames, and various TLDs\n4. Add a `formatEmail(email)` method that normalizes email addresses (e.g., trimming whitespace, converting to lowercase)\n5. Write unit tests with various valid and invalid email formats\n6. Test with edge cases like international domains and unusual but valid formats\n7. Document the regex patterns used and their validation logic",
-          "status": "pending",
+          "status": "done",
           "parentTaskId": 7
         },
         {
@@ -324,7 +324,7 @@
           "description": "Add phone number validation and formatting functionality with support for LATAM country codes",
           "dependencies": [],
           "details": "1. Create a `validatePhoneNumber(phoneNumber, countryCode)` method in DataProcessor class\n2. Research and implement country code validation for major LATAM countries (Mexico, Brazil, Argentina, Colombia, etc.)\n3. Create a mapping of country codes to expected phone number formats\n4. Implement regex patterns for each country's phone number format\n5. Add a `formatPhoneNumber(phoneNumber, countryCode)` method that standardizes format (e.g., +XX-XXX-XXXX-XXXX)\n6. Handle cases where country code might be embedded in the number or provided separately\n7. Write unit tests with sample phone numbers from different LATAM countries\n8. Test edge cases like numbers with/without country codes, different separators, etc.",
-          "status": "pending",
+          "status": "done",
           "parentTaskId": 7
         },
         {
@@ -336,7 +336,7 @@
             2
           ],
           "details": "1. Create a `calculateDataQualityScore(record)` method that evaluates completeness of records\n2. Define scoring criteria based on presence and validity of required fields\n3. Implement weighted scoring where critical fields (like email, phone) have higher importance\n4. Add a `flagSuspiciousData(record)` method that identifies potentially invalid entries\n5. Define criteria for suspicious data (e.g., dummy emails, sequential phone numbers)\n6. Create a comprehensive `validateRecord(record)` method that applies all validation rules and returns validation results\n7. Ensure all data is consistently formatted before storage by creating a `prepareForStorage(record)` method\n8. Write integration tests that validate complete records through the entire validation pipeline\n9. Document the scoring algorithm and flagging criteria for future reference",
-          "status": "pending",
+          "status": "done",
           "parentTaskId": 7
         }
       ]
@@ -345,7 +345,7 @@
       "id": 8,
       "title": "Google Sheets Integration - Authentication",
       "description": "Set up authentication and connection to Google Sheets API",
-      "status": "pending",
+      "status": "done",
       "dependencies": [
         2
       ],
@@ -359,7 +359,7 @@
           "description": "Create the foundation of the GoogleSheetsIntegration class with authentication functionality using service account credentials and secure credential loading",
           "dependencies": [],
           "details": "1. Create a new GoogleSheetsIntegration class\n2. Implement methods to load credentials from environment variables (using os.environ)\n3. Add fallback to load credentials from a secure file (JSON key file)\n4. Implement the authentication method using OAuth2 and service account credentials\n5. Add proper error handling for authentication failures (invalid credentials, network issues, etc.)\n6. Create a method to validate if authentication was successful\n7. Write unit tests using mocking to verify authentication flow works correctly\n8. Document the authentication process and required credential format",
-          "status": "pending",
+          "status": "done",
           "parentTaskId": 8
         },
         {
@@ -370,7 +370,7 @@
             1
           ],
           "details": "1. Add gspread as a dependency and import it in the class\n2. Create a method to establish connection to Google Sheets API using the authenticated credentials from subtask 1\n3. Implement methods to access existing spreadsheets by ID or URL\n4. Add functionality to create new spreadsheets with specified names\n5. Implement error handling for API connection issues and rate limiting\n6. Create helper methods to validate spreadsheet existence\n7. Add connection pooling or caching if appropriate to avoid repeated authentication\n8. Write integration tests that verify connection to the API works (using a test spreadsheet)\n9. Document the connection methods and their parameters",
-          "status": "pending",
+          "status": "done",
           "parentTaskId": 8
         },
         {
@@ -381,7 +381,7 @@
             2
           ],
           "details": "1. Implement methods to check current permissions of a spreadsheet\n2. Add functionality to share spreadsheets with specific users by email\n3. Implement methods to set different permission levels (viewer, editor, owner)\n4. Add ability to make spreadsheets public or private\n5. Implement methods to remove sharing permissions\n6. Add proper error handling for permission-related operations\n7. Create utility methods to validate email addresses and permission levels\n8. Write integration tests to verify permission changes work correctly\n9. Document all permission-related methods and provide usage examples\n10. Ensure all methods follow a consistent error handling pattern established in previous subtasks",
-          "status": "pending",
+          "status": "done",
           "parentTaskId": 8
         }
       ]
@@ -390,7 +390,7 @@
       "id": 9,
       "title": "Google Sheets Integration - Data Upload",
       "description": "Implement functionality to update Google Sheets with processed lead data",
-      "status": "pending",
+      "status": "completed",
       "dependencies": [
         7,
         8
@@ -405,7 +405,7 @@
           "description": "Create methods to convert processed DataFrame data into the format required by Google Sheets API, including adding a timestamp column to track when data was added.",
           "dependencies": [],
           "details": "Implementation steps:\n1. Add a new method `convert_dataframe_to_sheets_format(df, include_timestamp=True)` to the GoogleSheetsIntegration class\n2. Implement logic to convert DataFrame to a list of lists (rows) as required by Google Sheets API\n3. Add functionality to include a timestamp column when specified\n4. Handle data type conversions to ensure compatibility with Google Sheets\n5. Create unit tests with sample DataFrames to verify correct conversion\n6. Test with various DataFrame structures and data types\n7. Document the method with clear docstrings explaining parameters and return values",
-          "status": "pending",
+          "status": "completed",
           "parentTaskId": 9
         },
         {
@@ -416,7 +416,7 @@
             1
           ],
           "details": "Implementation steps:\n1. Add methods `append_to_sheet(sheet_id, data, range_name)` and `overwrite_sheet(sheet_id, data, range_name)` to the GoogleSheetsIntegration class\n2. Implement sheet existence validation before attempting updates\n3. Create a method to format spreadsheet headers and adjust column widths based on content\n4. Use the Google Sheets API to perform the actual updates\n5. Implement a helper method to determine the next empty row for append operations\n6. Add parameters to control formatting options (bold headers, freeze panes, etc.)\n7. Create integration tests that verify data is correctly written to test spreadsheets\n8. Test both append and overwrite functionality with various data sizes\n9. Document usage examples for both update modes",
-          "status": "pending",
+          "status": "completed",
           "parentTaskId": 9
         },
         {
@@ -428,7 +428,7 @@
             2
           ],
           "details": "Implementation steps:\n1. Research Google Sheets API rate limits and implement a rate limiting mechanism\n2. Create a `batch_update(sheet_id, data_chunks, mode='append')` method that splits large datasets into appropriate batch sizes\n3. Implement exponential backoff for API requests to handle rate limiting\n4. Add error handling that catches specific API exceptions (quota exceeded, network errors, etc.)\n5. Create a retry mechanism for failed batch uploads with configurable retry attempts\n6. Implement logging for successful updates, rate limit hits, and errors\n7. Add a recovery mechanism to track progress and resume from the last successful batch\n8. Create a method to validate the final upload by comparing row counts\n9. Test with large datasets that would trigger rate limits\n10. Document best practices for handling large data uploads",
-          "status": "pending",
+          "status": "completed",
           "parentTaskId": 9
         }
       ]
