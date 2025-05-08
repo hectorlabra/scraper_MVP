@@ -5,6 +5,18 @@ Script to show the corrected implementation of process_and_upload_data
 This avoids DeduplicationProcessor references.
 """
 
+import logging
+from datetime import datetime
+from utils.validation import ValidationProcessor  # Updated import path
+from upload import upload_to_google_sheets
+
+# Configure logger
+logger = logging.getLogger(__name__)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+
 def process_and_upload_data(df, config):
     """
     Process data through validation and upload it to Google Sheets.

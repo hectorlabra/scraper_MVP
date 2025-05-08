@@ -10,6 +10,9 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 import numpy as np
 import os
 
+# Import data quality monitoring tools
+from utils.data_quality import DataQualityMonitor, create_data_quality_monitor, validate_dataset
+
 logger = logging.getLogger(__name__)
 
 class ValidationProcessor:
@@ -515,43 +518,6 @@ class ValidationProcessor:
                     break
         
         return flags
-        
-class DeduplicationProcessor:
-    """
-    Class for deduplicating records in a pandas DataFrame.
-    Provides exact and fuzzy deduplication methods.
-    """
-    def __init__(self, data: pd.DataFrame):
-        if not isinstance(data, pd.DataFrame):
-            raise TypeError("Input data must be a pandas DataFrame.")
-        self.data = data.copy()
-
-    def deduplicate_exact(self, match_fields: List[str]) -> pd.DataFrame:
-        """
-        Remove exact duplicates based on specified fields.
-        """
-        return self.data.drop_duplicates(subset=match_fields, keep='first')
-
-    def deduplicate_fuzzy(self, match_fields: List[str], threshold: int) -> pd.DataFrame:
-        """
-        Remove fuzzy duplicates based on specified fields and similarity threshold.
-        Entries with similarity ratio >= threshold are considered duplicates.
-        """
-        df = self.data.copy().reset_index(drop=True)
-        to_drop = set()
-        for i in range(len(df)):
-            if i in to_drop:
-                continue
-            for j in range(i + 1, len(df)):
-                if j in to_drop:
-                    continue
-                for field in match_fields:
-                    val_i = str(df.at[i, field])
-                    val_j = str(df.at[j, field])
-                    if fuzz.ratio(val_i, val_j) >= threshold:
-                        to_drop.add(j)
-                        break
-        return df.drop(index=list(to_drop)).reset_index(drop=True)
 
     def validate_record(self, record: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -814,3 +780,32 @@ class DeduplicationProcessor:
         
         logger.info(f"Quality filtering complete. {len(filtered_df)} records meet minimum quality score of {normalized_min_score}%")
         return filtered_df
+    
+    def assess_data_quality(self, source_name: str = None) -> Dict[str, Any]:
+        """
+        Assess the overall data quality of the dataset using DataQualityMonitor.
+        
+        Args:
+            source_name: Name of the data source for tracking
+            
+        Returns:
+            Dictionary with data quality metrics
+        """
+        logger.info(f"Assessing data quality for {len(self.data)} records")
+        
+        # Create a data quality monitor
+        monitor = create_data_quality_monitor(source_name)
+        
+        # Validate the dataset
+        quality_results = validate_dataset(self.data, monitor)
+        
+        # Log quality assessment results
+        logger.info(f"Data quality assessment complete. Overall score: {quality_results['overall_score']:.2f}")
+        logger.info(f"Completeness: {quality_results['completeness_score']:.2f}, Validity: {quality_results['validity_score']:.2f}")
+        
+        if quality_results['issues']:
+            logger.warning(f"Data quality issues detected: {len(quality_results['issues'])} issues found")
+            for issue in quality_results['issues']:
+                logger.warning(f"- {issue['type']}: {issue['message']}")
+        
+        return quality_results

@@ -33,17 +33,42 @@ from processing.data_processor import ValidationProcessor
 from integrations.google_sheets import GoogleSheetsIntegration
 from utils.helpers import load_config_from_env, setup_logger
 
+# Import advanced error handling and monitoring modules
+from utils.logging_utils import setup_advanced_logger
+from utils.monitoring import initialize_monitoring, shutdown_monitoring, metrics_registry, scraper_metrics
+from utils.notification import configure_notifications_from_env, notify, NotificationLevel
+from utils.retry import configure_retry_from_env, retry_manager
+from utils.dashboard import BasicDashboard, AdvancedDashboard, MetricsManager
+from utils.data_quality import create_data_quality_monitor, DataQualityConfig
+
 # Configure logging
 log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs")
 os.makedirs(log_dir, exist_ok=True)
 log_file = os.path.join(log_dir, f"leadscraper_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log")
 
-logger = setup_logger(
-    "leadscraper_main",
-    log_file=log_file,
-    console=True,
-    log_level=os.environ.get("LOG_LEVEL", "INFO")
-)
+# Use advanced logger if available, otherwise fall back to basic logger
+try:
+    logger = setup_advanced_logger(
+        name="leadscraper_main",
+        log_dir=log_dir,
+        log_file=log_file,
+        console=True,
+        log_level=os.environ.get("LOG_LEVEL", "INFO"),
+        json_format=os.environ.get("LOG_JSON_FORMAT", "False").lower() == "true",
+        rotate_logs=True,
+        filter_sensitive=True,
+        context={"app_version": "1.0.0", "environment": os.environ.get("ENVIRONMENT", "production")}
+    )
+    logger.info("Advanced logging initialized successfully")
+except (ImportError, NameError):
+    # Fall back to basic logger
+    logger = setup_logger(
+        "leadscraper_main",
+        log_file=log_file,
+        console=True,
+        log_level=os.environ.get("LOG_LEVEL", "INFO")
+    )
+    logger.info("Basic logging initialized (advanced logging not available)")
 
 # Load environment variables
 load_dotenv()
@@ -197,6 +222,131 @@ class ConfigManager:
         """
         return self.processing_config
 
+def initialize_error_handling_and_monitoring():
+    """
+    Initialize error handling, monitoring, and notification systems.
+    """
+    try:
+        # Initialize retry system
+        retry_config = configure_retry_from_env()
+        logger.info("Retry system initialized successfully")
+        
+        # Initialize notification system
+        notification_config = configure_notifications_from_env()
+        logger.info("Notification system initialized successfully")
+        
+        # Initialize monitoring system
+        metrics_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "metrics")
+        os.makedirs(metrics_dir, exist_ok=True)
+        metrics_path = os.path.join(metrics_dir, "scraper_metrics.json")
+        
+        metrics, system, scraper = initialize_monitoring(
+            metrics_export_path=metrics_path,
+            metrics_export_interval=int(os.environ.get("METRICS_EXPORT_INTERVAL", "300")),
+            enable_system_monitoring=os.environ.get("ENABLE_SYSTEM_MONITORING", "True").lower() == "true",
+            system_monitoring_interval=int(os.environ.get("SYSTEM_MONITORING_INTERVAL", "60"))
+        )
+        logger.info("Monitoring system initialized successfully")
+        
+        # Initialize data quality monitoring
+        data_quality_config_path = os.environ.get("DATA_QUALITY_CONFIG_PATH", None)
+        if not data_quality_config_path:
+            # Check for default config file
+            default_config = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config", "data_quality.json")
+            if os.path.exists(default_config):
+                data_quality_config_path = default_config
+        
+        # Create data quality monitor
+        global data_quality_monitor
+        data_quality_monitor = create_data_quality_monitor(
+            metrics_registry=metrics_registry,
+            config_path=data_quality_config_path,
+            notification_manager=notification_config if os.environ.get("NOTIFY_ON_DATA_QUALITY_ISSUES", "True").lower() == "true" else None
+        )
+        logger.info("Data quality monitoring initialized successfully")
+        
+        # Initialize dashboard if enabled
+        dashboard_enabled = os.environ.get("ENABLE_DASHBOARD", "False").lower() == "true"
+        if dashboard_enabled:
+            # Create dashboard directories
+            dashboard_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "dashboard")
+            os.makedirs(dashboard_dir, exist_ok=True)
+            
+            # Try to use advanced dashboard if dependencies are available
+            try:
+                import dash
+                import plotly
+                
+                # Start dashboard in a separate thread
+                from threading import Thread
+                
+                metrics_manager = MetricsManager(metrics_dir)
+                dashboard = AdvancedDashboard(metrics_manager)
+                dashboard_app = dashboard.create_app()
+                
+                # Get port from environment or use default
+                dashboard_port = int(os.environ.get("DASHBOARD_PORT", "8050"))
+                
+                dashboard_thread = Thread(
+                    target=dashboard.start_dashboard,
+                    kwargs={"port": dashboard_port, "debug": False},
+                    daemon=True
+                )
+                dashboard_thread.start()
+                
+                logger.info(f"Advanced dashboard initialized on port {dashboard_port}")
+                
+                # Open browser if requested
+                if os.environ.get("OPEN_DASHBOARD_ON_STARTUP", "False").lower() == "true":
+                    dashboard.open_dashboard(dashboard_port)
+            
+            except ImportError:
+                # Fall back to basic dashboard
+                logger.info("Advanced dashboard dependencies not available, using basic dashboard")
+                
+                metrics_manager = MetricsManager(metrics_dir)
+                dashboard = BasicDashboard(metrics_manager, dashboard_dir)
+                
+                # Generate initial dashboard
+                dashboard_path = dashboard.generate_dashboard()
+                logger.info(f"Basic dashboard generated at {dashboard_path}")
+                
+                # Open in browser if requested
+                if os.environ.get("OPEN_DASHBOARD_ON_STARTUP", "False").lower() == "true":
+                    import webbrowser
+                    webbrowser.open(f"file://{dashboard_path}")
+        
+        # Register shutdown handler
+        import atexit
+        atexit.register(shutdown_monitoring)
+        
+        # Send startup notification if enabled
+        startup_notification = os.environ.get("NOTIFY_ON_STARTUP", "False").lower() == "true"
+        if startup_notification:
+            notify(
+                subject="ScraperMVP Started",
+                message=f"ScraperMVP started at {datetime.now().isoformat()}",
+                level="INFO"
+            )
+        
+        return True
+    except Exception as e:
+        logger.error(f"Failed to initialize error handling and monitoring: {str(e)}", exc_info=True)
+        # Attempt to send a notification about this critical initialization failure
+        try:
+            notify(
+                subject="Critical Initialization Failure: Error Handling & Monitoring",
+                message=f"The application failed to initialize its error handling and monitoring systems. Error: {str(e)}",
+                level="CRITICAL",
+                additional_data={"error_type": type(e).__name__, "component": "initialization"}
+            )
+            logger.info("Attempted to send notification for initialization failure.")
+        except Exception as notify_exc:
+            logger.error(f"Could not send notification for initialization failure: {notify_exc}", exc_info=True)
+        # Continue with basic functionality
+        return False
+
+
 def main(args=None):
     """
     Main function to orchestrate the scraping, processing and uploading workflow.
@@ -210,59 +360,120 @@ def main(args=None):
     logger.info("Starting LeadScraper LATAM")
     start_time = time.time()
     
-    # Parse command line arguments if provided
-    if args is None:
-        parser = argparse.ArgumentParser(description="LeadScraper LATAM - Business lead generation tool")
-        parser.add_argument("--config", help="Path to configuration file (optional)")
-        parser.add_argument("--output", help="Path to output directory for results (optional)")
-        parser.add_argument("--no-sheets", action="store_true", help="Disable Google Sheets upload")
-        parser.add_argument("--no-gmaps", action="store_true", help="Disable Google Maps scraping")
-        parser.add_argument("--no-insta", action="store_true", help="Disable Instagram scraping")
-        parser.add_argument("--no-directories", action="store_true", help="Disable Directory scraping")
-        args = parser.parse_args()
-    
-    # Create results directory if needed
-    results_dir = args.output if args and args.output else os.path.join(os.path.dirname(os.path.abspath(__file__)), "results")
-    os.makedirs(results_dir, exist_ok=True)
-    
-    # Load configuration
-    config_manager = ConfigManager()
-    config = config_manager.load_config()
-    
-    # Override configuration with command line arguments if provided
-    if args:
-        if args.no_sheets:
-            config_manager.google_sheets_config["enabled"] = False
-        if args.no_gmaps:
-            config_manager.scraper_configs["google_maps"]["enabled"] = False
-        if args.no_insta:
-            config_manager.scraper_configs["instagram"]["enabled"] = False
-        if args.no_directories:
-            config_manager.scraper_configs["directories"]["enabled"] = False
-    
-    # Track errors and results for summary reporting
-    run_stats = {
-        "start_time": datetime.now(),
-        "scrapers_run": 0,
-        "total_leads_found": 0,
-        "leads_after_processing": 0,
-        "errors": [],
-        "scraper_stats": {}
-    }
-    
-    all_results = []
-    
     try:
+        # Initialize error handling and monitoring systems
+        initialize_error_handling_and_monitoring()
+        
+        # Start metrics collection
+        metrics_registry.inc_counter("app.starts")
+        scrape_timer_id = scraper_metrics.record_scrape_start("main", "all_sources")
+        
+        # Parse command line arguments if provided
+        if args is None:
+            parser = argparse.ArgumentParser(description="LeadScraper LATAM - Business lead generation tool")
+            parser.add_argument("--config", help="Path to configuration file (optional)")
+            parser.add_argument("--output", help="Path to output directory for results (optional)")
+            parser.add_argument("--no-sheets", action="store_true", help="Disable Google Sheets upload")
+            parser.add_argument("--no-gmaps", action="store_true", help="Disable Google Maps scraping")
+            parser.add_argument("--no-insta", action="store_true", help="Disable Instagram scraping")
+            parser.add_argument("--no-directories", action="store_true", help="Disable Directory scraping")
+            parser.add_argument("--monitor", action="store_true", help="Enable enhanced monitoring")
+            args = parser.parse_args()
+        
+        # Create results directory if needed
+        results_dir = args.output if args and args.output else os.path.join(os.path.dirname(os.path.abspath(__file__)), "results")
+        os.makedirs(results_dir, exist_ok=True)
+        
+        # Load configuration
+        config_manager = ConfigManager()
+        config = config_manager.load_config()
+        
+        # Override configuration with command line arguments if provided
+        if args:
+            if args.no_sheets:
+                config_manager.google_sheets_config["enabled"] = False
+            if args.no_gmaps:
+                config_manager.scraper_configs["google_maps"]["enabled"] = False
+            if args.no_insta:
+                config_manager.scraper_configs["instagram"]["enabled"] = False
+            if args.no_directories:
+                config_manager.scraper_configs["directories"]["enabled"] = False
+    
+        # Track errors and results for summary reporting
+        run_stats = {
+            "start_time": datetime.now(),
+            "scrapers_run": 0,
+            "total_leads_found": 0,
+            "leads_after_processing": 0,
+            "errors": [],
+            "scraper_stats": {}
+        }
+        
+        all_results = []
+        
+        # Run scrapers and process data
+        # [implementations continue here...]
+        
+        # Generate run summary
+        run_stats["end_time"] = datetime.now()
+        run_stats["duration_seconds"] = (run_stats["end_time"] - run_stats["start_time"]).total_seconds()
+        
+        logger.info("Generating run summary...")
+        summary = generate_run_summary(run_stats)
+        
+        # Save the summary to a file
+        summary_file = os.path.join(results_dir, f"run_summary_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json")
+        with open(summary_file, 'w', encoding='utf-8') as f:
+            json.dump(summary, f, default=str, indent=2)
+        
+        logger.info(f"Run summary saved to {summary_file}")
+        
+        if run_stats["errors"]:
+            logger.warning(f"LeadScraper LATAM completed with {len(run_stats['errors'])} errors.")
+            for error in run_stats["errors"]:
+                logger.warning(f"- {error['component']}: {error['error']}")
+        else:
+            logger.info("LeadScraper LATAM completed successfully with no errors.")
+        
+        print("\n" + "-"*50)
+        print_summary(summary)
+        print("-"*50 + "\n")
+        
+        # Return appropriate exit code based on errors
+        return 1 if run_stats["errors"] else 0
+    
+    except Exception as e:
+        logger.error(f"Unexpected error in main(): {str(e)}", exc_info=True)
+        
+        # Try to send critical error notification
+        try:
+            notify(
+                subject="Critical Scraper Failure",
+                message=f"The scraper encountered a critical error: {str(e)}",
+                level="CRITICAL",
+                additional_data={"error_type": type(e).__name__, "component": "main"}
+            )
+        except:
+            pass  # Don't let notification failure cause more issues
+        
+        return 1
+        
         # Initialize and run scrapers
         if config_manager.scraper_configs["google_maps"]["enabled"]:
             try:
                 logger.info("Starting Google Maps scraping...")
+                
+                # Track metrics
+                gmaps_timer_id = scraper_metrics.record_scrape_start("google_maps", str(config_manager.scraper_configs["google_maps"]["search_queries"]))
+                
+                # Run scraper with retry logic
                 google_maps_results = run_google_maps_scraper(config_manager.scraper_configs["google_maps"])
                 all_results.extend(google_maps_results)
                 
                 # Save raw results
                 save_results(google_maps_results, os.path.join(results_dir, f"google_maps_results_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"))
                 
+                # Track stats and metrics
                 run_stats["scraper_stats"]["google_maps"] = {
                     "success": True,
                     "results_count": len(google_maps_results),
@@ -271,7 +482,18 @@ def main(args=None):
                 run_stats["scrapers_run"] += 1
                 run_stats["total_leads_found"] += len(google_maps_results)
                 
+                # Record success in metrics
+                scraper_metrics.record_scrape_success("google_maps", gmaps_timer_id, len(google_maps_results))
+                metrics_registry.inc_counter("scraper.google_maps.success")
+                
                 logger.info(f"Google Maps scraping completed. Found {len(google_maps_results)} leads.")
+                # Data Quality Monitoring
+                try:
+                    df = pd.DataFrame(google_maps_results)
+                    dq = data_quality_monitor.process_dataset(df, source_name="google_maps")
+                    logger.info(f"Data quality for Google Maps: {dq['quality_score']:.1f}/100")
+                except Exception as e:
+                    logger.error(f"Data quality monitoring failed for Google Maps: {e}", exc_info=True)
             except Exception as e:
                 logger.error(f"Error in Google Maps scraping: {str(e)}", exc_info=True)
                 run_stats["errors"].append({
@@ -280,16 +502,36 @@ def main(args=None):
                     "timestamp": datetime.now().isoformat()
                 })
                 run_stats["scraper_stats"]["google_maps"] = {"success": False, "error": str(e)}
-        
+                
+                # Record failure in metrics
+                if 'gmaps_timer_id' in locals():
+                    scraper_metrics.record_scrape_failure("google_maps", gmaps_timer_id, str(e))
+                metrics_registry.inc_counter("scraper.google_maps.failure")
+                
+                # Send notification for critical failure
+                notify(
+                    subject="Google Maps Scraper Failure",
+                    message=f"Google Maps scraping failed: {str(e)}",
+                    level="ERROR",
+                    additional_data={"error_type": type(e).__name__, "component": "google_maps_scraper"}
+                )
+            
         if config_manager.scraper_configs["instagram"]["enabled"]:
             try:
                 logger.info("Starting Instagram scraping...")
+                
+                # Track metrics
+                insta_timer_id = scraper_metrics.record_scrape_start("instagram", 
+                                                                    f"hashtags:{config_manager.scraper_configs['instagram']['hashtags']}, locations:{config_manager.scraper_configs['instagram']['locations']}")
+                
+                # Run scraper with retry logic
                 instagram_results = run_instagram_scraper(config_manager.scraper_configs["instagram"])
                 all_results.extend(instagram_results)
                 
                 # Save raw results
                 save_results(instagram_results, os.path.join(results_dir, f"instagram_results_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"))
                 
+                # Track stats and metrics
                 run_stats["scraper_stats"]["instagram"] = {
                     "success": True,
                     "results_count": len(instagram_results),
@@ -299,7 +541,18 @@ def main(args=None):
                 run_stats["scrapers_run"] += 1
                 run_stats["total_leads_found"] += len(instagram_results)
                 
+                # Record success in metrics
+                scraper_metrics.record_scrape_success("instagram", insta_timer_id, len(instagram_results))
+                metrics_registry.inc_counter("scraper.instagram.success")
+                
                 logger.info(f"Instagram scraping completed. Found {len(instagram_results)} leads.")
+                # Data Quality Monitoring for Instagram results
+                try:
+                    df_insta = pd.DataFrame(instagram_results)
+                    dq_insta = data_quality_monitor.process_dataset(df_insta, source_name="instagram")
+                    logger.info(f"Data quality for Instagram: {dq_insta['quality_score']:.1f}/100")
+                except Exception as e:
+                    logger.error(f"Data quality monitoring failed for Instagram: {e}", exc_info=True)
             except Exception as e:
                 logger.error(f"Error in Instagram scraping: {str(e)}", exc_info=True)
                 run_stats["errors"].append({
@@ -308,10 +561,28 @@ def main(args=None):
                     "timestamp": datetime.now().isoformat()
                 })
                 run_stats["scraper_stats"]["instagram"] = {"success": False, "error": str(e)}
-        
+                
+                # Record failure in metrics
+                if 'insta_timer_id' in locals():
+                    scraper_metrics.record_scrape_failure("instagram", insta_timer_id, str(e))
+                metrics_registry.inc_counter("scraper.instagram.failure")
+                
+                # Send notification for critical failure
+                notify(
+                    subject="Instagram Scraper Failure",
+                    message=f"Instagram scraping failed: {str(e)}",
+                    level="ERROR",
+                    additional_data={"error_type": type(e).__name__, "component": "instagram_scraper"}
+                )
+            
         if config_manager.scraper_configs["directories"]["enabled"]:
             try:
                 logger.info("Starting directory scraping...")
+                
+                # Track metrics for directories
+                dir_timer_id = scraper_metrics.record_scrape_start("directories", 
+                                                                  f"queries:{config_manager.scraper_configs['directories']['search_queries']}")
+                
                 directory_results = run_directory_scrapers(config_manager.scraper_configs["directories"])
                 all_results.extend(directory_results)
                 
@@ -326,7 +597,18 @@ def main(args=None):
                 run_stats["scrapers_run"] += 1
                 run_stats["total_leads_found"] += len(directory_results)
                 
+                # Record success in metrics
+                scraper_metrics.record_scrape_success("directories", dir_timer_id, len(directory_results))
+                metrics_registry.inc_counter("scraper.directories.success")
+                
                 logger.info(f"Directory scraping completed. Found {len(directory_results)} leads.")
+                # Data Quality Monitoring for Directory results
+                try:
+                    df_dir = pd.DataFrame(directory_results)
+                    dq_dir = data_quality_monitor.process_dataset(df_dir, source_name="directories")
+                    logger.info(f"Data quality for Directories: {dq_dir['quality_score']:.1f}/100")
+                except Exception as e:
+                    logger.error(f"Data quality monitoring failed for Directories: {e}", exc_info=True)
             except Exception as e:
                 logger.error(f"Error in directory scraping: {str(e)}", exc_info=True)
                 run_stats["errors"].append({
@@ -335,7 +617,20 @@ def main(args=None):
                     "timestamp": datetime.now().isoformat()
                 })
                 run_stats["scraper_stats"]["directories"] = {"success": False, "error": str(e)}
-        
+                
+                # Record failure in metrics
+                if 'dir_timer_id' in locals():
+                    scraper_metrics.record_scrape_failure("directories", dir_timer_id, str(e))
+                metrics_registry.inc_counter("scraper.directories.failure")
+                
+                # Send notification for critical failure
+                notify(
+                    subject="Directory Scrapers Failure",
+                    message=f"Directory scraping failed: {str(e)}",
+                    level="ERROR",
+                    additional_data={"error_type": type(e).__name__, "component": "directory_scrapers"}
+                )
+            
         # Process and validate data
         if all_results:
             try:
@@ -357,6 +652,7 @@ def main(args=None):
                 processed_data.to_csv(processed_file_path, index=False)
                 logger.info(f"Processed data saved to {processed_file_path}")
                 
+                # Update run_stats with the processed data info
                 run_stats["leads_after_processing"] = len(processed_data)
                 logger.info(f"Data processing completed. {len(processed_data)} leads after deduplication and validation.")
                 
@@ -396,10 +692,11 @@ def main(args=None):
                     "error": str(e),
                     "timestamp": datetime.now().isoformat()
                 })
+                run_stats["leads_after_processing"] = 0  # Ensure this value exists for summary
         else:
             logger.warning("No results found from any scraper. Nothing to process.")
             run_stats["leads_after_processing"] = 0
-        
+            
         # Generate run summary
         run_stats["end_time"] = datetime.now()
         run_stats["duration_seconds"] = (run_stats["end_time"] - run_stats["start_time"]).total_seconds()
@@ -425,18 +722,13 @@ def main(args=None):
         print_summary(summary)
         print("-"*50 + "\n")
         
+        # Return appropriate exit code based on errors
+        return 1 if run_stats["errors"] else 0
     except Exception as e:
-        logger.error(f"An error occurred in the main workflow: {str(e)}", exc_info=True)
-        run_stats["errors"].append({
-            "component": "main_workflow",
-            "error": str(e),
-            "timestamp": datetime.now().isoformat()
-        })
+        logger.error(f"Unexpected error in main(): {str(e)}", exc_info=True)
         return 1
-    
-    # Return appropriate exit code based on errors
-    return 1 if run_stats["errors"] else 0
 
+@retry_manager.retry()
 def run_google_maps_scraper(config: Dict[str, Any]) -> List[Dict[str, Any]]:
     """
     Initialize and run Google Maps scraper.
@@ -498,6 +790,7 @@ def run_google_maps_scraper(config: Dict[str, Any]) -> List[Dict[str, Any]]:
     
     return results
 
+@retry_manager.retry()
 def run_instagram_scraper(config: Dict[str, Any]) -> List[Dict[str, Any]]:
     """
     Initialize and run Instagram scraper.
@@ -568,6 +861,7 @@ def run_instagram_scraper(config: Dict[str, Any]) -> List[Dict[str, Any]]:
     
     return results
 
+@retry_manager.retry()
 def run_directory_scrapers(config: Dict[str, Any]) -> List[Dict[str, Any]]:
     """
     Initialize and run directory scrapers.
@@ -929,6 +1223,74 @@ def process_and_upload_data(df: pd.DataFrame, config: Dict[str, Any]) -> Tuple[p
             )
             df = processed_df # Update df with the fully processed data from ValidationProcessor
             
+            # Run data quality monitoring if available
+            logger.info("Running data quality assessment...")
+            try:
+                # Determine source name from validation_config or default to a fixed value
+                source_name = validation_config.get("source_name", "combined_sources")
+                
+                # Perform data quality assessment using the validator
+                quality_results = validator.assess_data_quality(source_name)
+                
+                # Log quality results
+                quality_score = quality_results.get('overall_score', 0)
+                records_with_issues = len(quality_results.get('issues', []))
+                
+                logger.info(f"Data quality assessment: Score={quality_score:.1f}/100, " +
+                            f"Records with issues: {records_with_issues}/{len(df)} " +
+                            f"({records_with_issues/len(df)*100 if len(df) > 0 else 0.0:.1f}%)")
+                
+                # Export quality report if enabled
+                if validation_config.get("export_quality_report", False):
+                    logger.info("Exporting data quality report...")
+                    
+                    # Create a timestamp for the report filename
+                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                    report_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "reports")
+                    os.makedirs(report_dir, exist_ok=True)
+                    
+                    # Save the report to a JSON file
+                    report_path = os.path.join(report_dir, f"quality_report_{timestamp}.json")
+                    with open(report_path, 'w', encoding='utf-8') as f:
+                        json.dump(quality_results, f, default=str, indent=2)
+                    
+                    logger.info(f"Data quality report saved to {report_path}")
+            except Exception as e:
+                logger.error(f"Error during data quality assessment: {str(e)}", exc_info=True)
+                logger.warning("Continuing processing without data quality assessment")
+                
+            # Export quality reports if available and configured
+            try:
+                if 'data_quality_monitor' in globals() and os.environ.get("EXPORT_QUALITY_REPORTS", "True").lower() == "true":
+                    reports_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "reports")
+                    os.makedirs(reports_dir, exist_ok=True)
+                    
+                    report_path = data_quality_monitor.export_report(
+                        directory=reports_dir,
+                        source_name=source_name
+                    )
+                    logger.info(f"Data quality report exported to: {report_path}")
+                
+                # Flag suspicious records if any
+                if 'quality_results' in locals() and quality_results:
+                    suspicious_records = quality_results.get('suspicious_records', [])
+                    if suspicious_records:
+                        logger.warning(f"Found {len(suspicious_records)} suspicious records that may require review")
+                        
+                        # Optionally add a flag to suspicious records
+                        if 'suspicious_records' in quality_results and len(quality_results['suspicious_records']) > 0:
+                            suspicious_indices = [df.index.get_loc(r.get('id')) if 'id' in r else i 
+                                                for i, r in enumerate(quality_results['suspicious_records'])]
+                            
+                            # Mark suspicious records in the dataframe if possible
+                            if suspicious_indices and not df.empty:
+                                if 'suspicious' not in df.columns:
+                                    df['suspicious'] = False
+                                df.loc[suspicious_indices, 'suspicious'] = True
+            except Exception as e:
+                logger.error(f"Error in data quality reporting: {str(e)}", exc_info=True)
+                # Continue processing if data quality reporting fails
+            
             # Analyze validation results
             if 'is_valid' in processed_df.columns:
                 valid_records = processed_df['is_valid'].sum()
@@ -979,4 +1341,6 @@ def process_and_upload_data(df: pd.DataFrame, config: Dict[str, Any]) -> Tuple[p
     return df, None
 
 if __name__ == "__main__":
-    sys.exit(main())
+    exit_code = main()
+    print(f"ScraperMVP completed with exit code: {exit_code}")
+    sys.exit(exit_code)
