@@ -42,6 +42,7 @@ jobs:
 
       - name: Setup service account credentials
         run: |
+          mkdir -p config
           echo "${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}" > config/service-account.json
           echo "GOOGLE_SERVICE_ACCOUNT_FILE=config/service-account.json" >> .env
 
@@ -63,6 +64,10 @@ jobs:
       - name: Verify environment setup
         run: python check_env.py
 
+      - name: Get current date
+        id: date
+        run: echo "date=$(date +'%Y-%m-%d %H:%M:%S')" >> $GITHUB_OUTPUT
+
       - name: Run scraper
         id: run_scraper
         continue-on-error: true # Continue to next steps even if this fails
@@ -71,17 +76,17 @@ jobs:
           mkdir -p results
           python main.py | tee scraper_output.log
           # Save exit code for later use
-          echo "EXIT_CODE=$?" >> $GITHUB_ENV
+          echo "exit_code=$?" >> $GITHUB_OUTPUT
 
       - name: Check for errors
         id: error_check
         run: |
-          if [ "${{ env.EXIT_CODE }}" != "0" ]; then
-            echo "Scraper completed with errors (exit code: ${{ env.EXIT_CODE }})"
-            echo "scraper_status=failed" >> $GITHUB_ENV
+          if [ "${{ steps.run_scraper.outputs.exit_code }}" != "0" ]; then
+            echo "Scraper completed with errors (exit code: ${{ steps.run_scraper.outputs.exit_code }})"
+            echo "status=failed" >> $GITHUB_OUTPUT
           else
             echo "Scraper completed successfully"
-            echo "scraper_status=success" >> $GITHUB_ENV
+            echo "status=success" >> $GITHUB_OUTPUT
           fi
 
       - name: Upload results
@@ -95,7 +100,7 @@ jobs:
           retention-days: 7
 
       - name: Send success notification
-        if: env.scraper_status == 'success'
+        if: steps.error_check.outputs.status == 'success'
         uses: dawidd6/action-send-mail@v3
         with:
           server_address: ${{ secrets.SMTP_SERVER }}
@@ -114,7 +119,7 @@ jobs:
           attachments: scraper_output.log
 
       - name: Send failure notification
-        if: env.scraper_status != 'success'
+        if: steps.error_check.outputs.status == 'failed'
         uses: dawidd6/action-send-mail@v3
         with:
           server_address: ${{ secrets.SMTP_SERVER }}
@@ -123,7 +128,7 @@ jobs:
           password: ${{ secrets.SMTP_PASSWORD }}
           subject: "❌ [ScraperMVP] Daily scrape failed"
           body: |
-            The daily scrape job failed with exit code: ${{ env.EXIT_CODE }}
+            The daily scrape job failed with exit code: ${{ steps.run_scraper.outputs.exit_code }}
 
             Timestamp: ${{ steps.date.outputs.date }}
 
@@ -134,5 +139,5 @@ jobs:
 
       # If scraper failed, exit with error code
       - name: Exit with error code if failed
-        if: env.scraper_status != 'success'
+        if: steps.error_check.outputs.status == 'failed'
         run: exit 1
