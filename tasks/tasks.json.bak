@@ -4,7 +4,7 @@
       "id": 1,
       "title": "Project Setup and Environment Configuration",
       "description": "Initialize project structure, create virtual environment, and set up dependencies",
-      "status": "pending",
+      "status": "done",
       "dependencies": [],
       "priority": "high",
       "details": "Create a new Python project with the following structure: main.py, scrapers/ (directory for scraper modules), processors/ (for data processing), integrations/ (for Google Sheets), utils/ (for helper functions). Set up requirements.txt with necessary packages: selenium, beautifulsoup4, pandas, gspread, google-auth, instaloader, undetected-chromedriver. Create a .env file template for storing credentials and configuration.",
@@ -14,7 +14,7 @@
       "id": 2,
       "title": "Implement Core Utilities and Helper Functions",
       "description": "Create utility functions for common operations across scrapers",
-      "status": "pending",
+      "status": "done",
       "dependencies": [
         1
       ],
@@ -26,7 +26,7 @@
       "id": 3,
       "title": "Google Maps Scraper - Basic Implementation",
       "description": "Create a module to scrape business data from Google Maps",
-      "status": "pending",
+      "status": "done",
       "dependencies": [
         2
       ],
@@ -39,7 +39,7 @@
           "title": "Configuración de undetected-chromedriver y Selenium",
           "description": "Configurar el entorno de navegación automatizada resistente a detección",
           "details": "Implementar la configuración base de undetected-chromedriver y Selenium para evadir la detección de bots. Esto incluye: 1) Instalar undetected-chromedriver, 2) Configurar opciones del navegador para minimizar la huella digital (disable-blink-features=AutomationControlled, etc.), 3) Implementar clases para inicializar y gestionar la sesión del navegador, 4) Crear métodos de cierre controlado del navegador y gestión de recursos. Asegurar que la configuración funciona en entornos headless y con interfaz gráfica.",
-          "status": "pending",
+          "status": "done",
           "dependencies": [],
           "parentTaskId": 3
         },
@@ -48,7 +48,7 @@
           "title": "Implementación de estrategias anti-detección",
           "description": "Implementar estrategias anti-detección y simulación de comportamiento humano",
           "details": "Crear una biblioteca de funciones para simular comportamiento humano en Google Maps: 1) Implementar patrones de scroll aleatorios (velocidad variable, pausas), 2) Simular movimientos de ratón realistas, 3) Crear sistema de rotación de User-Agents basado en navegadores modernos, 4) Implementar funciones de delay variables entre acciones (time.sleep() con tiempos aleatorios entre 3-10 segundos), 5) Crear funciones para realizar clics simulando comportamiento humano (con pequeños offsets aleatorios), 6) Implementar mecanismos para alternar entre diferentes patrones de navegación para evitar patrones detectables.",
-          "status": "pending",
+          "status": "done",
           "dependencies": [
             "3.1"
           ],
@@ -59,7 +59,7 @@
           "title": "Funcionalidad de búsqueda en Google Maps",
           "description": "Desarrollar funcionalidad de búsqueda en Google Maps",
           "details": "Implementar métodos para interactuar con la interfaz de búsqueda de Google Maps: 1) Navegación segura a la URL de Google Maps, 2) Localización e interacción con el campo de búsqueda, 3) Implementar búsquedas por categoría y ubicación (ej: 'restaurantes CDMX'), 4) Gestionar carga de página y esperas dinámicas (usando WebDriverWait para asegurar que los elementos están listos), 5) Manejar los diversos formatos de resultados de búsqueda que Google Maps puede presentar, 6) Implementar reintentos cuando la búsqueda falla. Asegurar que la funcionalidad se adapta a los cambios frecuentes de la interfaz de usuario de Google Maps.",
-          "status": "pending",
+          "status": "done",
           "dependencies": [
             "3.2"
           ],
@@ -70,7 +70,7 @@
           "title": "Extracción de datos de listados de negocios",
           "description": "Implementar extracción de datos de listados de negocios",
           "details": "Desarrollar funciones para extraer información detallada de los listados de negocios: 1) Identificar y parsear nombres de negocios, 2) Extraer direcciones completas, 3) Obtener números de teléfono (cuando estén disponibles), 4) Recopilar URLs de sitios web, 5) Extraer valoraciones y número de reseñas, 6) Capturar categorías de negocio, 7) Obtener horarios cuando estén disponibles. Implementar selectors CSS/XPath robustos con alternativas para adaptarse a cambios en la estructura HTML. Asegurar que los datos se extraen de forma consistente y se manejan correctamente los campos faltantes.",
-          "status": "pending",
+          "status": "done",
           "dependencies": [
             "3.3"
           ],
@@ -81,7 +81,7 @@
           "title": "Manejo de paginación y navegación por resultados",
           "description": "Desarrollar manejo de paginación y navegación por resultados",
           "details": "Implementar funcionalidad para navegar a través de múltiples páginas de resultados: 1) Detectar y manejar el panel de resultados lateral, 2) Implementar scroll progresivo para cargar más resultados dinámicamente, 3) Detectar cuándo se han cargado nuevos resultados, 4) Mantener registro de negocios ya procesados para evitar duplicados, 5) Implementar lógica para determinar cuándo se han agotado los resultados, 6) Añadir opción para limitar la cantidad de páginas/resultados a procesar. La implementación debe ser robusta frente a cambios en la carga de la página y manejar correctamente los casos donde Google muestra diferentes formatos de resultados.",
-          "status": "pending",
+          "status": "done",
           "dependencies": [
             "3.4"
           ],
@@ -92,7 +92,7 @@
           "title": "Detección y manejo de bloqueos y CAPTCHAs",
           "description": "Implementar detección y manejo de bloqueos y CAPTCHAs",
           "details": "Desarrollar sistema de detección y respuesta a mecanismos anti-scraping de Google: 1) Implementar detección de patrones de CAPTCHA en la página, 2) Crear función para identificar redirecciones sospechosas o páginas de bloqueo, 3) Desarrollar sistema de notificación cuando se detecta un bloqueo, 4) Implementar estrategias de pausa temporal cuando se detectan patrones de bloqueo (esperar períodos más largos), 5) Crear lógica para guardar el estado actual y poder reanudar más tarde, 6) Optimizar las técnicas anti-detección cuando se encuentran bloqueos repetidos. El sistema debe minimizar el riesgo de bloqueo permanente de IPs mediante una estrategia progresiva de mitigación.",
-          "status": "pending",
+          "status": "done",
           "dependencies": [
             "3.5"
           ],
@@ -103,7 +103,7 @@
           "title": "Integración y finalización de GoogleMapsScraper",
           "description": "Integrar componentes y finalizar clase GoogleMapsScraper",
           "details": "Integrar todos los componentes desarrollados en las subtareas anteriores en una clase GoogleMapsScraper completa y funcional: 1) Diseñar una API clara y fácil de usar para la clase, 2) Implementar constructor con opciones configurables (límites de resultados, tiempos de espera, etc.), 3) Crear método principal search() que coordine todo el proceso de scraping, 4) Implementar sistema de logging detallado para diagnóstico, 5) Añadir manejo de errores comprensivo con recuperación automática cuando sea posible, 6) Optimizar la gestión de recursos (cerrar navegadores correctamente), 7) Documentar la clase y métodos extensamente. La clase final debe ser fácil de usar, robusta y producir resultados consistentes en formato estandarizado (lista de diccionarios con campos uniformes).",
-          "status": "pending",
+          "status": "done",
           "dependencies": [
             "3.6"
           ],
@@ -115,31 +115,145 @@
       "id": 4,
       "title": "Public Directories Scraper Implementation",
       "description": "Create modules to scrape business data from public directories",
-      "status": "pending",
+      "status": "done",
       "dependencies": [
         2
       ],
       "priority": "high",
       "details": "Implement a DirectoryScraper class using BeautifulSoup and Requests/Selenium as needed. Create specific implementations for at least 2 public directories (e.g., chambers of commerce, yellow pages). Each implementation should: 1) Navigate to the directory, 2) Search by category and location, 3) Extract business name, category, phone, and other available data, 4) Handle pagination. Design with extensibility in mind to easily add more directories later.",
-      "testStrategy": "Test each directory scraper with different search parameters. Verify data extraction by comparing with manual checks. Test with different business categories and locations."
+      "testStrategy": "Test each directory scraper with different search parameters. Verify data extraction by comparing with manual checks. Test with different business categories and locations.",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Research and select target public directories",
+          "description": "Research and select public business directories to target in LATAM (e.g., Yellow Pages, Chambers of Commerce, industry-specific directories).",
+          "details": "",
+          "status": "done",
+          "dependencies": [],
+          "parentTaskId": 4
+        },
+        {
+          "id": 2,
+          "title": "Create base DirectoryScraper class",
+          "description": "Create a base DirectoryScraper class with common scraping functionality for all directory implementations.",
+          "details": "",
+          "status": "done",
+          "dependencies": [
+            "4.1"
+          ],
+          "parentTaskId": 4
+        },
+        {
+          "id": 3,
+          "title": "Implement first directory-specific scraper",
+          "description": "Implement the first directory-specific scraper by extending the base class.",
+          "details": "",
+          "status": "done",
+          "dependencies": [
+            "4.2"
+          ],
+          "parentTaskId": 4
+        },
+        {
+          "id": 4,
+          "title": "Implement second directory-specific scraper",
+          "description": "Implement the second directory-specific scraper by extending the base class.",
+          "details": "",
+          "status": "done",
+          "dependencies": [
+            "4.2"
+          ],
+          "parentTaskId": 4
+        },
+        {
+          "id": 5,
+          "title": "Implement pagination and result collection",
+          "description": "Add pagination handling and result collection for each directory scraper.",
+          "details": "",
+          "status": "done",
+          "dependencies": [
+            "4.3",
+            "4.4"
+          ],
+          "parentTaskId": 4
+        },
+        {
+          "id": 6,
+          "title": "Define directory data structure",
+          "description": "Create unified data structure for storing scraped directory data consistently.",
+          "details": "",
+          "status": "done",
+          "dependencies": [
+            "4.5"
+          ],
+          "parentTaskId": 4
+        },
+        {
+          "id": 7,
+          "title": "Integrate directory results with data processing",
+          "description": "Connect public directory scraper output to the main data processing pipeline.",
+          "details": "",
+          "status": "done",
+          "dependencies": [
+            "4.6"
+          ],
+          "parentTaskId": 4
+        }
+      ]
     },
     {
       "id": 5,
       "title": "Instagram Scraper Implementation",
       "description": "Create a module to extract business profiles from Instagram based on hashtags and locations",
-      "status": "pending",
+      "status": "done",
       "dependencies": [
         2
       ],
       "priority": "medium",
       "details": "Implement an InstagramScraper class using Instaloader or Selenium. The scraper should: 1) Search for posts by hashtags or locations relevant to LATAM businesses, 2) Extract profile information from post authors, 3) Collect profile bio, location, and contact information when available, 4) Handle Instagram's rate limiting and authentication requirements. Consider implementing session management to avoid frequent logins.",
-      "testStrategy": "Test with various hashtags and locations. Verify profile data extraction accuracy. Test rate limiting handling by running multiple searches. Ensure compliance with Instagram's terms of service."
+      "testStrategy": "Test with various hashtags and locations. Verify profile data extraction accuracy. Test rate limiting handling by running multiple searches. Ensure compliance with Instagram's terms of service.",
+      "implementationSummary": "Se ha desarrollado un scraper de Instagram completo utilizando la biblioteca Instaloader que permite extraer perfiles de negocios en LATAM. La implementación incluye autenticación robusta con manejo de sesiones, búsqueda por hashtags y ubicaciones, y extracción inteligente de información de negocios. El sistema puede detectar perfiles de negocios basándose en múltiples indicadores, extraer información de contacto y detalles del perfil. Se incluyen scripts CLI para uso desde la línea de comandos, pruebas unitarias y documentación completa.",
+      "completionDate": "04/05/2025",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Set up InstagramScraper class with authentication and session management",
+          "description": "Create the base InstagramScraper class with authentication functionality and session management to handle Instagram's rate limiting",
+          "dependencies": [],
+          "details": "1. Create an InstagramScraper class with constructor accepting credentials\n2. Implement login functionality using either Instaloader or Selenium (Selenium recommended for more robust scraping)\n3. Add session management to store cookies and avoid frequent logins\n4. Implement rate limiting protection with exponential backoff and random delays\n5. Add error handling for authentication failures\n6. Create a method to check login status\n7. Test the authentication flow with valid and invalid credentials\n8. Implement a session recovery mechanism if disconnected",
+          "status": "done",
+          "parentTaskId": 5
+        },
+        {
+          "id": 2,
+          "title": "Implement hashtag and location search functionality",
+          "description": "Add methods to search Instagram for posts by hashtags and locations relevant to LATAM businesses",
+          "dependencies": [
+            1
+          ],
+          "details": "1. Create a method to search posts by hashtag (e.g., searchByHashtag(tag, limit))\n2. Implement a method to search posts by location (e.g., searchByLocation(location_id, limit))\n3. Add pagination support to retrieve more than the initial set of posts\n4. Create a helper method to identify LATAM-relevant content (e.g., by language, location mentions)\n5. Implement filters to focus on business-related posts\n6. Add functionality to store search results temporarily\n7. Test search functionality with various hashtags and locations\n8. Implement error handling for failed searches and rate limiting",
+          "status": "done",
+          "parentTaskId": 5
+        },
+        {
+          "id": 3,
+          "title": "Extract and process business profile information",
+          "description": "Implement methods to extract business profile information from post authors and collect relevant data",
+          "dependencies": [
+            1,
+            2
+          ],
+          "details": "1. Create a method to extract profile information from post authors\n2. Implement functionality to parse profile bio for business indicators\n3. Add extraction of contact information (email, phone) when available\n4. Implement location extraction and normalization\n5. Create a data structure to store extracted business profiles\n6. Add deduplication logic to avoid processing the same profile multiple times\n7. Implement a method to export collected data to CSV/JSON\n8. Test the extraction with various profile types (business, personal, etc.)\n9. Add validation to ensure extracted data meets quality standards",
+          "status": "done",
+          "parentTaskId": 5
+        }
+      ]
     },
     {
       "id": 6,
       "title": "Data Processing Module - Deduplication",
       "description": "Implement functionality to identify and remove duplicate leads",
-      "status": "pending",
+      "status": "completed",
       "dependencies": [
         3,
         4,
@@ -147,50 +261,183 @@
       ],
       "priority": "high",
       "details": "Create a DataProcessor class with deduplication methods using Pandas. Implement: 1) Exact matching on business names, phones, or emails, 2) Fuzzy matching for similar business names (using libraries like fuzzywuzzy), 3) Configurable deduplication rules (e.g., match on name AND location or phone only), 4) Preservation of the record with the most complete information when duplicates are found. Return a cleaned DataFrame.",
-      "testStrategy": "Create test datasets with known duplicates in various formats. Verify all duplicates are correctly identified and the most complete records are preserved. Test with edge cases like slightly misspelled names."
+      "testStrategy": "Create test datasets with known duplicates in various formats. Verify all duplicates are correctly identified and the most complete records are preserved. Test with edge cases like slightly misspelled names.",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Create DataProcessor class with exact matching deduplication",
+          "description": "Implement the DataProcessor class with methods for exact matching deduplication based on business names, phone numbers, and email addresses.",
+          "dependencies": [],
+          "details": "1. Create a DataProcessor class with an initializer that accepts a pandas DataFrame.\n2. Implement a method `deduplicate_exact()` that identifies exact duplicates based on business names, phones, or emails.\n3. Add parameters to control which fields to use for matching (e.g., name_only, email_only, phone_only, or combinations).\n4. Implement logic to preserve the record with the most complete information when duplicates are found (count non-null values in each row).\n5. Return a cleaned DataFrame with duplicates removed.\n6. Add appropriate docstrings and type hints.\n7. Test with sample data containing exact duplicates to verify correct identification and removal.",
+          "status": "completed",
+          "parentTaskId": 6
+        },
+        {
+          "id": 2,
+          "title": "Implement fuzzy matching for business names",
+          "description": "Add fuzzy matching capabilities to the DataProcessor class to identify similar business names that might be duplicates.",
+          "dependencies": [
+            1
+          ],
+          "details": "1. Add the fuzzywuzzy library as a dependency.\n2. Implement a method `deduplicate_fuzzy()` that uses fuzzy string matching to identify similar business names.\n3. Add a threshold parameter to control the sensitivity of fuzzy matching (default 80).\n4. Implement a function to compare each business name against all others and calculate similarity scores.\n5. Group potential matches based on the threshold.\n6. Apply the same preservation logic from subtask 1 to keep the most complete record.\n7. Return a DataFrame with fuzzy duplicates removed.\n8. Test with sample data containing similar but not identical business names to verify correct matching and deduplication.",
+          "status": "completed",
+          "parentTaskId": 6
+        },
+        {
+          "id": 3,
+          "title": "Implement configurable deduplication rules and unified interface",
+          "description": "Create a unified deduplication interface with configurable rules combining exact and fuzzy matching with logical operators.",
+          "dependencies": [
+            1,
+            2
+          ],
+          "details": "1. Implement a method `deduplicate()` that serves as the main interface for all deduplication operations.\n2. Add parameters to configure deduplication rules (e.g., match on name AND location or phone only).\n3. Support logical operators in rules (AND, OR) for field combinations.\n4. Implement rule parsing to determine which fields to use and how to combine them.\n5. Integrate both exact and fuzzy matching approaches based on the configured rules.\n6. Add a parameter to control whether to use fuzzy matching and its threshold.\n7. Implement comprehensive logging to track which records were identified as duplicates and why.\n8. Return the final cleaned DataFrame.\n9. Test with complex scenarios using different rule combinations to ensure correct deduplication behavior.",
+          "status": "completed",
+          "parentTaskId": 6
+        }
+      ]
     },
     {
       "id": 7,
       "title": "Data Processing Module - Validation",
       "description": "Implement data validation and formatting for phone numbers and emails",
-      "status": "pending",
+      "status": "done",
       "dependencies": [
         6
       ],
       "priority": "high",
       "details": "Extend the DataProcessor class with validation methods: 1) Implement regex patterns for validating email formats, 2) Create phone number validation and formatting for LATAM countries (considering country codes), 3) Add a data quality score calculation based on completeness of records, 4) Flag invalid or suspicious data entries. Ensure all data is consistently formatted before storage.",
-      "testStrategy": "Test with various valid and invalid email formats and phone numbers from different LATAM countries. Verify formatting is consistent and invalid data is properly flagged."
+      "testStrategy": "Test with various valid and invalid email formats and phone numbers from different LATAM countries. Verify formatting is consistent and invalid data is properly flagged.",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Implement Email Validation with Regex Patterns",
+          "description": "Extend the DataProcessor class with methods to validate email formats using regular expressions",
+          "dependencies": [],
+          "details": "1. Create a new method `validateEmail(email)` in the DataProcessor class that returns a boolean indicating validity\n2. Implement regex patterns that validate standard email formats (username@domain.tld)\n3. Handle edge cases like subdomains, special characters in usernames, and various TLDs\n4. Add a `formatEmail(email)` method that normalizes email addresses (e.g., trimming whitespace, converting to lowercase)\n5. Write unit tests with various valid and invalid email formats\n6. Test with edge cases like international domains and unusual but valid formats\n7. Document the regex patterns used and their validation logic",
+          "status": "done",
+          "parentTaskId": 7
+        },
+        {
+          "id": 2,
+          "title": "Implement Phone Number Validation for LATAM Countries",
+          "description": "Add phone number validation and formatting functionality with support for LATAM country codes",
+          "dependencies": [],
+          "details": "1. Create a `validatePhoneNumber(phoneNumber, countryCode)` method in DataProcessor class\n2. Research and implement country code validation for major LATAM countries (Mexico, Brazil, Argentina, Colombia, etc.)\n3. Create a mapping of country codes to expected phone number formats\n4. Implement regex patterns for each country's phone number format\n5. Add a `formatPhoneNumber(phoneNumber, countryCode)` method that standardizes format (e.g., +XX-XXX-XXXX-XXXX)\n6. Handle cases where country code might be embedded in the number or provided separately\n7. Write unit tests with sample phone numbers from different LATAM countries\n8. Test edge cases like numbers with/without country codes, different separators, etc.",
+          "status": "done",
+          "parentTaskId": 7
+        },
+        {
+          "id": 3,
+          "title": "Implement Data Quality Scoring and Flagging",
+          "description": "Add functionality to calculate data quality scores and flag suspicious entries",
+          "dependencies": [
+            1,
+            2
+          ],
+          "details": "1. Create a `calculateDataQualityScore(record)` method that evaluates completeness of records\n2. Define scoring criteria based on presence and validity of required fields\n3. Implement weighted scoring where critical fields (like email, phone) have higher importance\n4. Add a `flagSuspiciousData(record)` method that identifies potentially invalid entries\n5. Define criteria for suspicious data (e.g., dummy emails, sequential phone numbers)\n6. Create a comprehensive `validateRecord(record)` method that applies all validation rules and returns validation results\n7. Ensure all data is consistently formatted before storage by creating a `prepareForStorage(record)` method\n8. Write integration tests that validate complete records through the entire validation pipeline\n9. Document the scoring algorithm and flagging criteria for future reference",
+          "status": "done",
+          "parentTaskId": 7
+        }
+      ]
     },
     {
       "id": 8,
       "title": "Google Sheets Integration - Authentication",
       "description": "Set up authentication and connection to Google Sheets API",
-      "status": "pending",
+      "status": "done",
       "dependencies": [
         2
       ],
       "priority": "high",
       "details": "Create a GoogleSheetsIntegration class that handles: 1) OAuth2 authentication using service account credentials, 2) Loading credentials from environment variables or a secure file, 3) Connecting to the Google Sheets API using gspread, 4) Creating new spreadsheets or accessing existing ones, 5) Managing permissions and sharing settings. Implement proper error handling for authentication failures.",
-      "testStrategy": "Test authentication with valid and invalid credentials. Verify connection to test spreadsheets. Ensure proper error messages are displayed when authentication fails."
+      "testStrategy": "Test authentication with valid and invalid credentials. Verify connection to test spreadsheets. Ensure proper error messages are displayed when authentication fails.",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Implement OAuth2 authentication with service account credentials",
+          "description": "Create the foundation of the GoogleSheetsIntegration class with authentication functionality using service account credentials and secure credential loading",
+          "dependencies": [],
+          "details": "1. Create a new GoogleSheetsIntegration class\n2. Implement methods to load credentials from environment variables (using os.environ)\n3. Add fallback to load credentials from a secure file (JSON key file)\n4. Implement the authentication method using OAuth2 and service account credentials\n5. Add proper error handling for authentication failures (invalid credentials, network issues, etc.)\n6. Create a method to validate if authentication was successful\n7. Write unit tests using mocking to verify authentication flow works correctly\n8. Document the authentication process and required credential format",
+          "status": "done",
+          "parentTaskId": 8
+        },
+        {
+          "id": 2,
+          "title": "Implement Google Sheets API connection using gspread",
+          "description": "Extend the GoogleSheetsIntegration class to establish connection with Google Sheets API using gspread library and implement spreadsheet access methods",
+          "dependencies": [
+            1
+          ],
+          "details": "1. Add gspread as a dependency and import it in the class\n2. Create a method to establish connection to Google Sheets API using the authenticated credentials from subtask 1\n3. Implement methods to access existing spreadsheets by ID or URL\n4. Add functionality to create new spreadsheets with specified names\n5. Implement error handling for API connection issues and rate limiting\n6. Create helper methods to validate spreadsheet existence\n7. Add connection pooling or caching if appropriate to avoid repeated authentication\n8. Write integration tests that verify connection to the API works (using a test spreadsheet)\n9. Document the connection methods and their parameters",
+          "status": "done",
+          "parentTaskId": 8
+        },
+        {
+          "id": 3,
+          "title": "Implement permission management and sharing settings",
+          "description": "Complete the GoogleSheetsIntegration class by adding functionality to manage permissions and sharing settings for spreadsheets",
+          "dependencies": [
+            2
+          ],
+          "details": "1. Implement methods to check current permissions of a spreadsheet\n2. Add functionality to share spreadsheets with specific users by email\n3. Implement methods to set different permission levels (viewer, editor, owner)\n4. Add ability to make spreadsheets public or private\n5. Implement methods to remove sharing permissions\n6. Add proper error handling for permission-related operations\n7. Create utility methods to validate email addresses and permission levels\n8. Write integration tests to verify permission changes work correctly\n9. Document all permission-related methods and provide usage examples\n10. Ensure all methods follow a consistent error handling pattern established in previous subtasks",
+          "status": "done",
+          "parentTaskId": 8
+        }
+      ]
     },
     {
       "id": 9,
       "title": "Google Sheets Integration - Data Upload",
       "description": "Implement functionality to update Google Sheets with processed lead data",
-      "status": "pending",
+      "status": "completed",
       "dependencies": [
         7,
         8
       ],
       "priority": "high",
       "details": "Extend the GoogleSheetsIntegration class to: 1) Convert processed DataFrame to the required format for Google Sheets, 2) Update existing sheets with new data (append or overwrite options), 3) Format the spreadsheet (headers, column widths, etc.), 4) Handle API rate limits and batch updates for efficiency, 5) Implement error recovery for failed uploads. Include a timestamp column to track when data was added.",
-      "testStrategy": "Test uploading various sizes of datasets. Verify data integrity by comparing source data with uploaded data. Test error recovery by simulating API failures during upload."
+      "testStrategy": "Test uploading various sizes of datasets. Verify data integrity by comparing source data with uploaded data. Test error recovery by simulating API failures during upload.",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Implement DataFrame to Google Sheets Format Conversion",
+          "description": "Create methods to convert processed DataFrame data into the format required by Google Sheets API, including adding a timestamp column to track when data was added.",
+          "dependencies": [],
+          "details": "Implementation steps:\n1. Add a new method `convert_dataframe_to_sheets_format(df, include_timestamp=True)` to the GoogleSheetsIntegration class\n2. Implement logic to convert DataFrame to a list of lists (rows) as required by Google Sheets API\n3. Add functionality to include a timestamp column when specified\n4. Handle data type conversions to ensure compatibility with Google Sheets\n5. Create unit tests with sample DataFrames to verify correct conversion\n6. Test with various DataFrame structures and data types\n7. Document the method with clear docstrings explaining parameters and return values",
+          "status": "completed",
+          "parentTaskId": 9
+        },
+        {
+          "id": 2,
+          "title": "Implement Sheet Update Functionality with Append/Overwrite Options",
+          "description": "Create methods to update existing Google Sheets with new data, supporting both append and overwrite modes, and implementing proper formatting for headers and columns.",
+          "dependencies": [
+            1
+          ],
+          "details": "Implementation steps:\n1. Add methods `append_to_sheet(sheet_id, data, range_name)` and `overwrite_sheet(sheet_id, data, range_name)` to the GoogleSheetsIntegration class\n2. Implement sheet existence validation before attempting updates\n3. Create a method to format spreadsheet headers and adjust column widths based on content\n4. Use the Google Sheets API to perform the actual updates\n5. Implement a helper method to determine the next empty row for append operations\n6. Add parameters to control formatting options (bold headers, freeze panes, etc.)\n7. Create integration tests that verify data is correctly written to test spreadsheets\n8. Test both append and overwrite functionality with various data sizes\n9. Document usage examples for both update modes",
+          "status": "completed",
+          "parentTaskId": 9
+        },
+        {
+          "id": 3,
+          "title": "Implement Batch Updates with Rate Limiting and Error Recovery",
+          "description": "Enhance the Google Sheets update functionality to handle API rate limits, implement batch updates for efficiency, and add error recovery mechanisms for failed uploads.",
+          "dependencies": [
+            1,
+            2
+          ],
+          "details": "Implementation steps:\n1. Research Google Sheets API rate limits and implement a rate limiting mechanism\n2. Create a `batch_update(sheet_id, data_chunks, mode='append')` method that splits large datasets into appropriate batch sizes\n3. Implement exponential backoff for API requests to handle rate limiting\n4. Add error handling that catches specific API exceptions (quota exceeded, network errors, etc.)\n5. Create a retry mechanism for failed batch uploads with configurable retry attempts\n6. Implement logging for successful updates, rate limit hits, and errors\n7. Add a recovery mechanism to track progress and resume from the last successful batch\n8. Create a method to validate the final upload by comparing row counts\n9. Test with large datasets that would trigger rate limits\n10. Document best practices for handling large data uploads",
+          "status": "completed",
+          "parentTaskId": 9
+        }
+      ]
     },
     {
       "id": 10,
       "title": "Main Script Integration",
       "description": "Create the main script that orchestrates the entire workflow",
-      "status": "pending",
+      "status": "completed",
       "dependencies": [
         3,
         4,
@@ -200,31 +447,220 @@
       ],
       "priority": "high",
       "details": "Develop main.py that orchestrates the entire process: 1) Load configuration (search queries, locations, etc.), 2) Initialize and run each scraper in sequence, 3) Process and validate the combined data, 4) Upload to Google Sheets, 5) Generate a summary report of the run (total leads, new leads, errors, etc.). Implement proper error handling to ensure partial failures don't stop the entire process.",
-      "testStrategy": "Run end-to-end tests with limited queries. Verify the entire workflow executes without errors. Test error handling by intentionally causing failures in different components."
+      "testStrategy": "Run end-to-end tests with limited queries. Verify the entire workflow executes without errors. Test error handling by intentionally causing failures in different components.",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Configuration Management",
+          "description": "Create a configuration management system to handle scraper settings, search queries, credentials, etc.",
+          "details": "",
+          "status": "completed",
+          "dependencies": [],
+          "parentTaskId": 10
+        },
+        {
+          "id": 2,
+          "title": "Scraper Orchestration",
+          "description": "Implement scraper initialization and execution orchestration to run them in sequence.",
+          "details": "",
+          "status": "completed",
+          "dependencies": [
+            "10.1"
+          ],
+          "parentTaskId": 10
+        },
+        {
+          "id": 3,
+          "title": "Data Pipeline Integration",
+          "description": "Create a data pipeline to process, validate, and combine data from all scrapers.",
+          "details": "",
+          "status": "completed",
+          "dependencies": [
+            "10.2"
+          ],
+          "parentTaskId": 10
+        },
+        {
+          "id": 4,
+          "title": "Google Sheets Upload Integration",
+          "description": "Integrate with Google Sheets API for data upload of processed leads.",
+          "details": "",
+          "status": "completed",
+          "dependencies": [
+            "10.3"
+          ],
+          "parentTaskId": 10
+        },
+        {
+          "id": 5,
+          "title": "Error Handling and Logging",
+          "description": "Implement error handling, logging, and reporting for the main script.",
+          "details": "",
+          "status": "completed",
+          "dependencies": [
+            "10.1"
+          ],
+          "parentTaskId": 10
+        },
+        {
+          "id": 6,
+          "title": "Run Summary Reporting",
+          "description": "Create summary report generator to provide statistics and insights from each run.",
+          "details": "",
+          "status": "completed",
+          "dependencies": [
+            "10.4",
+            "10.5"
+          ],
+          "parentTaskId": 10
+        },
+        {
+          "id": 7,
+          "title": "Main Entry Point and CLI",
+          "description": "Create an entry point script (main.py) and command-line interface for running the entire workflow.",
+          "details": "",
+          "status": "completed",
+          "dependencies": [
+            "10.6"
+          ],
+          "parentTaskId": 10
+        }
+      ]
     },
     {
       "id": 11,
       "title": "GitHub Actions Workflow Setup",
       "description": "Configure GitHub Actions for automated daily execution",
-      "status": "pending",
+      "status": "completed",
       "dependencies": [
         10
       ],
       "priority": "medium",
       "details": "Create a GitHub Actions workflow file (.github/workflows/daily-scrape.yml) that: 1) Runs on a daily schedule, 2) Sets up the Python environment and installs dependencies, 3) Configures necessary secrets and environment variables, 4) Executes the main script, 5) Handles and reports errors, 6) Optionally sends notifications on completion or failure. Consider implementing timeout and retry mechanisms.",
-      "testStrategy": "Test the workflow with a manual trigger. Verify it completes successfully and produces expected results. Test error reporting by introducing a deliberate error."
+      "testStrategy": "Test the workflow with a manual trigger. Verify it completes successfully and produces expected results. Test error reporting by introducing a deliberate error.",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Create GitHub Actions Workflow File",
+          "description": "Create the GitHub Actions workflow file with proper scheduling configuration.",
+          "details": "Created .github/workflows/daily-scrape.yml with a scheduled workflow that runs daily at 2:00 AM UTC. The workflow includes proper setup for Python environment, Chrome installation for Selenium, secrets management, error handling, artifact storage, and Slack notifications for failures. The file was configured with both scheduled runs and manual trigger capability for testing.",
+          "status": "completed",
+          "dependencies": [],
+          "parentTaskId": 11
+        },
+        {
+          "id": 2,
+          "title": "Configure Secrets and Environment Variables",
+          "description": "Set up environment configuration for GitHub Actions, including secrets management.",
+          "details": "Creada una guía detallada en docs/github_actions_secrets_guide.md que explica cómo configurar todos los secretos y variables de entorno necesarios para el flujo de trabajo de GitHub Actions. Se incluyen instrucciones paso a paso para configurar GOOGLE_SERVICE_ACCOUNT_JSON, GOOGLE_SHEETS_SPREADSHEET_ID, INSTAGRAM_USERNAME, INSTAGRAM_PASSWORD y otras variables de entorno clave.",
+          "status": "completed",
+          "dependencies": [
+            "11.1"
+          ],
+          "parentTaskId": 11
+        },
+        {
+          "id": 3,
+          "title": "Configure Job Steps",
+          "description": "Implement job steps for installing dependencies and running the scraper.",
+          "details": "Configurados todos los pasos del trabajo en el archivo daily-scrape.yml y creada documentación detallada en docs/github_actions_job_steps.md. Los pasos incluyen checkout del repositorio, configuración de Python, instalación de dependencias, configuración de Chrome, creación de directorios necesarios, configuración de variables de entorno, ejecución del script principal, archivo de resultados y generación de informes de estado.",
+          "status": "completed",
+          "dependencies": [
+            "11.2"
+          ],
+          "parentTaskId": 11
+        },
+        {
+          "id": 4,
+          "title": "Add Error Handling and Notifications",
+          "description": "Set up error handling and notification systems in the workflow.",
+          "details": "",
+          "status": "completed",
+          "dependencies": [
+            "11.3"
+          ],
+          "parentTaskId": 11
+        },
+        {
+          "id": 5,
+          "title": "Test and Validate Workflow",
+          "description": "Test the GitHub Actions workflow with manual triggers.",
+          "details": "",
+          "status": "completed",
+          "dependencies": [
+            "11.4"
+          ],
+          "parentTaskId": 11
+        }
+      ]
     },
     {
       "id": 12,
       "title": "Error Handling and Monitoring Enhancements",
       "description": "Implement comprehensive error handling and monitoring",
-      "status": "pending",
+      "status": "done",
       "dependencies": [
         10
       ],
       "priority": "medium",
       "details": "Enhance error handling throughout the codebase: 1) Implement detailed logging with different severity levels, 2) Create a monitoring dashboard or report generation, 3) Add email notifications for critical failures, 4) Implement automatic retry logic for transient errors, 5) Create a system to track scraper health over time (success rates, data quality). Consider adding Sentry or similar error tracking.",
-      "testStrategy": "Simulate various error conditions and verify appropriate handling. Check that notifications are sent correctly and logs contain sufficient information for debugging."
+      "testStrategy": "Simulate various error conditions and verify appropriate handling. Check that notifications are sent correctly and logs contain sufficient information for debugging.",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Implement Comprehensive Logging",
+          "description": "Set up a comprehensive logging system with different severity levels.",
+          "details": "",
+          "status": "done",
+          "dependencies": [],
+          "parentTaskId": 12
+        },
+        {
+          "id": 2,
+          "title": "Implement Retry Logic",
+          "description": "Create retry mechanisms for handling transient errors in scraping.",
+          "details": "",
+          "status": "done",
+          "dependencies": [
+            "12.1"
+          ],
+          "parentTaskId": 12
+        },
+        {
+          "id": 3,
+          "title": "Create Failure Notification System",
+          "description": "Develop a notification system for critical failures (email/Slack).",
+          "details": "",
+          "status": "done",
+          "dependencies": [
+            "12.1"
+          ],
+          "parentTaskId": 12
+        },
+        {
+          "id": 4,
+          "title": "Develop Monitoring Dashboard",
+          "description": "Build a monitoring dashboard to track scraper health and performance.",
+          "details": "",
+          "status": "done",
+          "dependencies": [
+            "12.1"
+          ],
+          "parentTaskId": 12
+        },
+        {
+          "id": 5,
+          "title": "Implement Data Quality Monitoring",
+          "description": "Implement data quality checks and validation throughout the system.",
+          "details": "",
+          "status": "done",
+          "dependencies": [
+            "12.2",
+            "12.3"
+          ],
+          "parentTaskId": 12
+        }
+      ]
     },
     {
       "id": 13,
@@ -240,7 +676,41 @@
       ],
       "priority": "low",
       "details": "Review and optimize the codebase for performance: 1) Implement parallel scraping where possible (using ThreadPoolExecutor or similar), 2) Optimize Selenium usage (minimize browser instances, use headless mode), 3) Improve data processing efficiency for large datasets, 4) Implement caching mechanisms to avoid re-scraping unchanged data, 5) Add progress tracking for long-running operations.",
-      "testStrategy": "Benchmark performance before and after optimizations. Verify that optimizations don't affect data quality or reliability. Test with larger datasets to ensure scalability."
+      "testStrategy": "Benchmark performance before and after optimizations. Verify that optimizations don't affect data quality or reliability. Test with larger datasets to ensure scalability.",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Implement Parallel Scraping with ThreadPoolExecutor",
+          "description": "Refactor the scraping code to use parallel execution for improved performance",
+          "dependencies": [],
+          "details": "Implementation steps:\n1. Identify scraping functions that can be parallelized (those without shared state or dependencies)\n2. Implement a ThreadPoolExecutor-based solution to run multiple scraping tasks concurrently\n3. Add configuration for controlling the maximum number of concurrent workers\n4. Implement proper exception handling for parallel tasks\n5. Add progress tracking for parallel operations using a shared counter and logging\n\nTesting approach:\n- Compare execution time between sequential and parallel implementations\n- Verify all data is correctly scraped in parallel mode\n- Test with different numbers of workers to find optimal configuration\n- Ensure proper error handling when a worker thread fails",
+          "status": "pending",
+          "parentTaskId": 13
+        },
+        {
+          "id": 2,
+          "title": "Optimize Selenium Usage and Browser Management",
+          "description": "Reduce resource usage by optimizing how browser instances are created and managed",
+          "dependencies": [
+            1
+          ],
+          "details": "Implementation steps:\n1. Configure all browser instances to use headless mode by default\n2. Implement a browser instance pool to reuse browsers instead of creating new ones\n3. Add browser resource cleanup to ensure browsers are properly closed\n4. Optimize page load strategy (set to 'eager' or 'none' when full page isn't needed)\n5. Implement intelligent waiting strategies (replace fixed sleeps with explicit/implicit waits)\n6. Minimize DOM interactions and use more efficient selectors\n\nTesting approach:\n- Monitor memory usage before and after optimization\n- Measure page load and scraping times\n- Verify scraping still works correctly with headless browsers\n- Test browser pool under various load conditions",
+          "status": "pending",
+          "parentTaskId": 13
+        },
+        {
+          "id": 3,
+          "title": "Implement Caching and Data Processing Optimization",
+          "description": "Add caching mechanisms and optimize data processing for large datasets",
+          "dependencies": [
+            1,
+            2
+          ],
+          "details": "Implementation steps:\n1. Design and implement a caching system to store scraped data with timestamps\n2. Add logic to check cache validity before scraping (based on configurable TTL)\n3. Optimize data processing algorithms for large datasets:\n   - Use generators for memory-efficient processing\n   - Implement batch processing for large datasets\n   - Replace inefficient data structures with more appropriate ones\n4. Add incremental processing capability to handle only new/changed data\n5. Implement progress tracking for long-running data processing operations\n\nTesting approach:\n- Measure processing time for large datasets before and after optimization\n- Verify cache correctly prevents unnecessary re-scraping\n- Test memory usage during processing of large datasets\n- Validate data integrity after optimization changes",
+          "status": "pending",
+          "parentTaskId": 13
+        }
+      ]
     },
     {
       "id": 14,
@@ -253,7 +723,8 @@
       ],
       "priority": "medium",
       "details": "Create user documentation including: 1) Installation and setup instructions, 2) Configuration options and examples, 3) How to add new search queries or locations, 4) Troubleshooting common issues, 5) Best practices for avoiding detection and blocks, 6) How to interpret the Google Sheets output. Include screenshots and examples where appropriate.",
-      "testStrategy": "Have someone unfamiliar with the project follow the documentation to set up and run the system. Gather feedback and improve unclear sections."
+      "testStrategy": "Have someone unfamiliar with the project follow the documentation to set up and run the system. Gather feedback and improve unclear sections.",
+      "subtasks": []
     },
     {
       "id": 15,
@@ -268,7 +739,41 @@
       ],
       "priority": "medium",
       "details": "Create technical documentation including: 1) System architecture overview, 2) Module descriptions and interactions, 3) How to extend the system with new scrapers, 4) API references for key classes, 5) Deployment options beyond GitHub Actions, 6) Security considerations and best practices, 7) Known limitations and future improvement areas. Use docstrings throughout the code and consider generating API docs with a tool like Sphinx.",
-      "testStrategy": "Review documentation for completeness and accuracy. Verify that all major components and functions are documented. Ensure code examples are correct and functional."
+      "testStrategy": "Review documentation for completeness and accuracy. Verify that all major components and functions are documented. Ensure code examples are correct and functional.",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Create System Architecture and Module Documentation",
+          "description": "Develop comprehensive documentation covering system architecture overview and module descriptions with interactions",
+          "dependencies": [],
+          "details": "Implementation details:\n1. Create a 'docs/technical/' directory structure\n2. Develop a system architecture document (docs/technical/architecture.md) that includes:\n   - High-level system architecture diagram (consider using PlantUML or Mermaid)\n   - Component breakdown and responsibilities\n   - Data flow diagrams\n   - Technology stack overview\n3. Create module documentation (docs/technical/modules.md) that includes:\n   - Description of each major module/component\n   - Module dependencies and interactions\n   - Class hierarchy diagrams where appropriate\n   - Initialization and execution flow\n4. Ensure documentation follows a consistent format with proper headings, tables, and diagrams\n5. Testing approach: Have at least one other developer review the documentation for clarity, completeness, and accuracy",
+          "status": "pending",
+          "parentTaskId": 15
+        },
+        {
+          "id": 2,
+          "title": "Implement Code-Level Documentation and API References",
+          "description": "Add comprehensive docstrings throughout the codebase and generate API reference documentation",
+          "dependencies": [
+            1
+          ],
+          "details": "Implementation details:\n1. Review and update docstrings throughout the codebase following a consistent format (e.g., Google style, NumPy style)\n2. Ensure all classes, methods, and functions have appropriate docstrings including:\n   - Description of purpose\n   - Parameter descriptions with types\n   - Return value descriptions with types\n   - Exception information\n   - Usage examples where helpful\n3. Set up Sphinx documentation generation:\n   - Install Sphinx and necessary extensions\n   - Configure Sphinx (conf.py) to extract docstrings\n   - Create appropriate .rst files for documentation structure\n   - Generate HTML documentation\n4. Create API reference documentation (docs/technical/api_reference.md) for key classes\n5. Testing approach:\n   - Run Sphinx documentation build and verify no errors/warnings\n   - Check generated HTML documentation for completeness\n   - Verify all key classes are properly documented",
+          "status": "pending",
+          "parentTaskId": 15
+        },
+        {
+          "id": 3,
+          "title": "Create Extension, Deployment, and Security Documentation",
+          "description": "Document system extension procedures, deployment options, security considerations, and future improvements",
+          "dependencies": [
+            1,
+            2
+          ],
+          "details": "Implementation details:\n1. Create extension guide (docs/technical/extending.md) that includes:\n   - Step-by-step instructions for adding new scrapers\n   - Templates or examples for common extension patterns\n   - Testing requirements for extensions\n2. Document deployment options (docs/technical/deployment.md):\n   - GitHub Actions configuration details\n   - Alternative deployment methods (Docker, serverless, etc.)\n   - Environment configuration requirements\n   - Scaling considerations\n3. Create security documentation (docs/technical/security.md):\n   - Authentication and authorization mechanisms\n   - Data handling best practices\n   - Input validation requirements\n   - Common security pitfalls to avoid\n4. Document known limitations and future improvements (docs/technical/roadmap.md):\n   - Current system constraints\n   - Planned enhancements\n   - Technical debt items\n   - Contribution guidelines\n5. Create a main index.md file that links to all documentation sections\n6. Testing approach:\n   - Verify all links between documents work\n   - Have a developer unfamiliar with the system attempt to follow the extension guide\n   - Review security documentation with team for completeness",
+          "status": "pending",
+          "parentTaskId": 15
+        }
+      ]
     }
   ],
   "metadata": {

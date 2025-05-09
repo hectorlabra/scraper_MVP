@@ -50,8 +50,10 @@ class CylexScraper(DirectoryScraper):
                  request_delay: float = 2.0,
                  random_delay_range: Optional[Tuple[float, float]] = (1.0, 3.0),
                  max_results: int = 100,
-                 headless: bool = False,
-                 country: str = "mx"):  # Default to Mexico
+                 headless: bool = True,
+                 use_browser_pool: bool = True,
+                 country: str = "mx",  # Default to Mexico
+                 **kwargs):  # Add **kwargs
         """
         Initialize the Cylex scraper.
         
@@ -60,18 +62,33 @@ class CylexScraper(DirectoryScraper):
             random_delay_range: Tuple of (min, max) additional random delay
             max_results: Maximum number of results to scrape
             headless: Whether to run the browser in headless mode
+            use_browser_pool: Whether to use the browser pool for better resource management
             country: Country code for the specific Cylex website (mx, ar, cl, co, etc.)
+            **kwargs: Additional keyword arguments for the base class
         """
         super().__init__(
             request_delay=request_delay,
             random_delay_range=random_delay_range,
-            max_results=max_results
+            max_results=max_results,
+            headless=headless,
+            use_browser_pool=use_browser_pool,
+            **kwargs  # Pass **kwargs to super
         )
         
-        self.headless = headless
         self.country = country.lower()
         self._set_base_url()
         
+    def get_cache_key_components(self) -> Dict[str, str]:
+        """
+        Get the components needed to generate a cache key for this scraper.
+        
+        Returns:
+            Dictionary with components for cache key generation
+        """
+        return {
+            'scraper_name': f"{self.__class__.__name__}_{self.country}"
+        }
+    
     def _set_base_url(self) -> None:
         """Set the base URL based on the selected country."""
         country_urls = {
@@ -108,30 +125,6 @@ class CylexScraper(DirectoryScraper):
             search_url = f"{self.base_url}/buscar?q={encoded_query}"
         
         return search_url
-    
-    def _ensure_driver(self) -> bool:
-        """Ensure the browser driver is initialized."""
-        if self.driver is None:
-            try:
-                options = webdriver.ChromeOptions()
-                options.add_argument("--disable-blink-features=AutomationControlled")
-                options.add_argument("--disable-extensions")
-                options.add_argument("--disable-infobars")
-                options.add_argument("--disable-notifications")
-                options.add_argument("--no-sandbox")
-                options.add_argument("--disable-dev-shm-usage")
-                options.add_argument(f"--user-agent={get_random_user_agent()}")
-                
-                if self.headless:
-                    options.add_argument("--headless")
-                
-                self.driver = webdriver.Chrome(options=options)
-                self.driver.set_page_load_timeout(30)
-                return True
-            except Exception as e:
-                logger.error(f"Failed to initialize Chrome driver: {e}")
-                return False
-        return True
     
     def get_listings(self) -> List[Any]:
         """
@@ -284,7 +277,8 @@ class CylexScraper(DirectoryScraper):
                     if emails:
                         business_data["email"] = emails[0]
                     break
-                except NoSuchElementException:
+                except Exception:
+                    # Treat any exception as missing element
                     continue
             
             # If no explicit email element, try to extract from all text
@@ -313,13 +307,13 @@ class CylexScraper(DirectoryScraper):
                 ".company-description", ".description", ".snippet",
                 "[data-testid='company-description']", ".companydescription"
             ]
-            
             for selector in description_selectors:
                 try:
                     desc_elem = html_element.find_element(By.CSS_SELECTOR, selector)
                     business_data["description"] = clean_text(desc_elem.text)
                     break
-                except NoSuchElementException:
+                except Exception:
+                    # Treat any exception as missing element
                     continue
             
             # Extract rating (if available)
@@ -368,32 +362,78 @@ class CylexScraper(DirectoryScraper):
     def handle_pagination(self) -> bool:
         """
         Go to the next page of results if available.
+        Uses intelligent waiting to detect page changes.
         
         Returns:
             True if successfully navigated to next page, False otherwise
         """
+        from utils.helpers import wait_for_element, wait_for_page_change
+        from selenium.webdriver.common.by import By
+        from selenium.common.exceptions import NoSuchElementException, ElementNotInteractableException
+        
         try:
+            # Store a reference element for stale checking
+            reference_elements = self.driver.find_elements(By.CSS_SELECTOR, 'body')
+            reference_element = reference_elements[0] if reference_elements else None
+            
+            # Store initial URL for change detection
+            initial_url = self.driver.current_url
+            
             # Look for pagination controls
             pagination_selectors = [
                 "a.next", ".pagination a[rel='next']", 
                 ".next-page", "[data-testid='pagination-next']",
                 "a[aria-label='Next']", ".pagenavigation a.next",
-                "li.next a"
+                "li.next a", "#pagination-next", 
+                "a[title='Siguiente página']",
+                ".pagination .arrow.next"
             ]
             
             for selector in pagination_selectors:
                 try:
-                    next_page = self.driver.find_element(By.CSS_SELECTOR, selector)
-                    if next_page.is_displayed() and next_page.is_enabled():
-                        logger.info("Navigating to next page in Cylex")
+                    # Use intelligent waiting to find the element
+                    next_page = wait_for_element(
+                        self.driver,
+                        selector,
+                        timeout=5,
+                        condition='clickable'
+                    )
+                    
+                    if next_page and next_page.is_displayed() and next_page.is_enabled():
+                        logger.info(f"Found next page button with selector: {selector}")
+                        
+                        # Scroll into view for better click reliability
+                        self.driver.execute_script(
+                            "arguments[0].scrollIntoView({block: 'center'});", 
+                            next_page
+                        )
+                        
+                        # Small wait after scrolling
+                        time.sleep(0.5)
+                        
+                        # Click the button
                         next_page.click()
-                        # Wait for the new page to load
-                        time.sleep(random.uniform(*self.random_delay_range))
-                        return True
+                        
+                        # Use intelligent waiting to detect page change
+                        if wait_for_page_change(
+                            self.driver, 
+                            timeout=10, 
+                            reference_element=reference_element,
+                            url_change=(initial_url != self.driver.current_url)
+                        ):
+                            logger.info("Successfully navigated to next page in Cylex")
+                            
+                            # Apply rate limiting to be polite to the server
+                            self.rate_limit()
+                            
+                            return True
                 except NoSuchElementException:
                     continue
                 except ElementNotInteractableException:
-                    logger.warning("Next page button is not interactive")
+                    logger.warning(f"Next page button with selector '{selector}' is not interactive")
+                    continue
+                except Exception as e:
+                    logger.debug(f"Error with selector {selector}: {e}")
                     continue
             
             logger.info("No more Cylex pages available or next button not found")
@@ -406,7 +446,7 @@ class CylexScraper(DirectoryScraper):
     def scrape(self, query: str, location: str = "") -> List[Dict[str, Any]]:
         """
         Core scraping method for Cylex.
-        Overrides the base method to add pagination handling.
+        Uses cache and intelligent waiting for optimized performance.
         
         Args:
             query: Search term (e.g., "restaurantes")
@@ -415,32 +455,49 @@ class CylexScraper(DirectoryScraper):
         Returns:
             List of dictionaries with scraped data
         """
+        from utils.helpers import wait_for_element, wait_for_elements
+        
+        # First check the cache
+        cached_results = self.get_cached_results(query, location)
+        if cached_results:
+            logger.info(f"Using cached results for query='{query}', location='{location}'")
+            return cached_results
+            
         self.results = []
         try:
             url = self.build_search_url(query, location)
             logger.info(f"Navigating to Cylex: {url}")
-            if not self._ensure_driver():
+            
+            # Initialize browser if needed
+            if not self.init_browser():
+                logger.error("Failed to initialize browser")
                 return []
             
-            # Navigate to the search URL
-            self.driver.get(url)
-            time.sleep(random.uniform(*self.random_delay_range))
+            # Navigate to the search URL with error handling
+            try:
+                self.driver.get(url)
+                # Use intelligent waiting for page load
+                wait_for_element(self.driver, "body", timeout=10, condition='presence')
+            except Exception as e:
+                logger.error(f"Error navigating to Cylex search URL: {e}")
+                return []
+            
+            # Apply rate limiting
+            self.rate_limit()
             
             # Check for CAPTCHA
             if detect_captcha(self.driver.page_source):
                 logger.warning("CAPTCHA detected on initial Cylex page load")
-                # Here you could implement CAPTCHA handling or notify the user
-                # For now, we'll just return an empty result
                 return []
             
-            # Process first page
+            # Process pages with intelligent pagination
             page = 1
             max_pages = 10  # Limit to prevent infinite loops
             
             while page <= max_pages and len(self.results) < self.max_results:
                 logger.info(f"Processing Cylex page {page}")
                 
-                # Get and process listings
+                # Get and process listings with intelligent waiting
                 listings = self.get_listings()
                 if not listings:
                     logger.warning(f"No listings found on Cylex page {page}")
@@ -457,8 +514,9 @@ class CylexScraper(DirectoryScraper):
                     if data:
                         self.results.append(data)
                     
-                    # Add random delay between processing listings
-                    time.sleep(random.uniform(0.5, 1.5))
+                    # Use intelligent rate limiting between processing listings
+                    # Smaller scale for intra-page requests
+                    self.rate_limit(scale=0.3)
                 
                 # Try to go to next page if we haven't reached the max results
                 if len(self.results) < self.max_results:
@@ -466,11 +524,15 @@ class CylexScraper(DirectoryScraper):
                         logger.info("No more Cylex pages available")
                         break
                     page += 1
-                    # Add delay between pages
-                    time.sleep(random.uniform(*self.random_delay_range))
+                    # Apply a longer rate limit between pages (higher scale factor)
+                    self.rate_limit(scale=1.5)
             
             # Clean the results
             self.clean_results()
+            
+            # Store results in cache for future use
+            self.save_results_to_cache(query, location)
+            
             logger.info(f"Scraped {len(self.results)} listings from Cylex {self.country.upper()}")
             return self.results
             
@@ -478,7 +540,5 @@ class CylexScraper(DirectoryScraper):
             logger.error(f"Error scraping Cylex: {e}")
             return []
         finally:
-            # Close the driver when done
-            if self.driver:
-                self.driver.quit()
-                self.driver = None
+            # Release browser back to pool instead of quitting
+            self.close()

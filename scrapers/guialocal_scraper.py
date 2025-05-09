@@ -50,8 +50,10 @@ class GuiaLocalScraper(DirectoryScraper):
                  request_delay: float = 2.0,
                  random_delay_range: Optional[Tuple[float, float]] = (1.0, 3.0),
                  max_results: int = 100,
-                 headless: bool = False,
-                 country: str = "mx"):  # Default to Mexico
+                 headless: bool = True,
+                 use_browser_pool: bool = True,
+                 country: str = "mx",  # Default to Mexico
+                 **kwargs):  # Add **kwargs
         """
         Initialize the GuiaLocal scraper.
         
@@ -60,15 +62,19 @@ class GuiaLocalScraper(DirectoryScraper):
             random_delay_range: Tuple of (min, max) additional random delay
             max_results: Maximum number of results to scrape
             headless: Whether to run the browser in headless mode
+            use_browser_pool: Whether to use the browser pool for better resource management
             country: Country code for the specific GuiaLocal website (mx, ar, cl, co, etc.)
+            **kwargs: Additional keyword arguments for the base class
         """
         super().__init__(
             request_delay=request_delay,
             random_delay_range=random_delay_range,
-            max_results=max_results
+            max_results=max_results,
+            headless=headless,
+            use_browser_pool=use_browser_pool,
+            **kwargs  # Pass **kwargs to super
         )
         
-        self.headless = headless
         self.country = country.lower()
         self._set_base_url()
         
@@ -108,30 +114,6 @@ class GuiaLocalScraper(DirectoryScraper):
             search_url = f"{self.base_url}/buscar?q={encoded_query}"
         
         return search_url
-    
-    def _ensure_driver(self) -> bool:
-        """Ensure the browser driver is initialized."""
-        if self.driver is None:
-            try:
-                options = webdriver.ChromeOptions()
-                options.add_argument("--disable-blink-features=AutomationControlled")
-                options.add_argument("--disable-extensions")
-                options.add_argument("--disable-infobars")
-                options.add_argument("--disable-notifications")
-                options.add_argument("--no-sandbox")
-                options.add_argument("--disable-dev-shm-usage")
-                options.add_argument(f"--user-agent={get_random_user_agent()}")
-                
-                if self.headless:
-                    options.add_argument("--headless")
-                
-                self.driver = webdriver.Chrome(options=options)
-                self.driver.set_page_load_timeout(30)
-                return True
-            except Exception as e:
-                logger.error(f"Failed to initialize Chrome driver: {e}")
-                return False
-        return True
     
     def get_listings(self) -> List[Any]:
         """
@@ -283,7 +265,8 @@ class GuiaLocalScraper(DirectoryScraper):
                     if emails:
                         business_data["email"] = emails[0]
                     break
-                except NoSuchElementException:
+                except Exception:
+                    # Treat any exception as missing element
                     continue
             
             # If no explicit email element, try to extract from all text
@@ -318,7 +301,8 @@ class GuiaLocalScraper(DirectoryScraper):
                     desc_elem = html_element.find_element(By.CSS_SELECTOR, selector)
                     business_data["description"] = clean_text(desc_elem.text)
                     break
-                except NoSuchElementException:
+                except Exception:
+                    # Treat any exception as missing element
                     continue
             
             # Extract rating (if available)
@@ -330,27 +314,22 @@ class GuiaLocalScraper(DirectoryScraper):
             for selector in rating_selectors:
                 try:
                     rating_elem = html_element.find_element(By.CSS_SELECTOR, selector)
-                    
                     # Try to extract numeric rating
                     rating_text = rating_elem.text
                     if rating_text:
-                        # Extract numeric values from rating text
                         rating_match = re.search(r'(\d+(\.\d+)?)', rating_text)
                         if rating_match:
                             business_data["rating"] = float(rating_match.group(1))
-                    
-                    # Alternative: Try to extract from star class or attributes
                     if not business_data["rating"]:
-                        # Some sites use class names or data attributes for ratings
                         rating_value = rating_elem.get_attribute("data-rating")
                         if rating_value:
                             try:
                                 business_data["rating"] = float(rating_value)
                             except ValueError:
                                 pass
-                    
                     break
-                except NoSuchElementException:
+                except Exception:
+                    # Treat any exception as missing element
                     continue
             
             # Return only if we have at least a name or a phone
@@ -476,8 +455,4 @@ class GuiaLocalScraper(DirectoryScraper):
         except Exception as e:
             logger.error(f"Error scraping GuiaLocal: {e}")
             return []
-        finally:
-            # Close the driver when done
-            if self.driver:
-                self.driver.quit()
-                self.driver = None
+        # Parent class (DirectoryScraper) will handle resource cleanup in its finally block

@@ -147,6 +147,23 @@ class TestDirectoryScrapers(unittest.TestCase):
         self.assertEqual(result["website"], "http://testrestaurant.com")
         self.assertEqual(result["category"], "Restaurantes")
         self.assertEqual(result["source"], "paginas_amarillas_mx")
+    
+    @patch('utils.helpers.wait_for_elements')
+    def test_paginas_amarillas_get_listings_fallback(self, mock_wait):
+        """Test PaginasAmarillasScraper.get_listings fallback to CSS selectors."""
+        # Simulate no dynamic analysis by setting skip_dynamic
+        # First selector returns empty, second returns two items
+        mock_elem1 = MagicMock()
+        mock_elem2 = MagicMock()
+        mock_wait.side_effect = [
+            [],  # ".listing"
+            [mock_elem1, mock_elem2]  # ".search-results__item"
+        ]
+        scraper = PaginasAmarillasScraper(skip_dynamic=True)
+        scraper.driver = MagicMock()
+        listings = scraper.get_listings()
+        # Should return the two elements from the second selector
+        self.assertEqual(listings, [mock_elem1, mock_elem2])
 
     @patch('scrapers.cylex_scraper.webdriver.Chrome')
     def test_cylex_parse_listing(self, mock_chrome):

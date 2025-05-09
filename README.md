@@ -15,6 +15,7 @@ El objetivo principal de este proyecto es proporcionar a agencias de marketing u
 - **Integración con Google Sheets**: Actualización automática de hojas de cálculo con los datos procesados
 - **Manejo de Errores**: Sistema robusto de seguimiento y recuperación de errores
 - **Informes Detallados**: Generación de reportes estadísticos del proceso de scraping
+- **Optimización de Rendimiento**: Paralelización de scrapers, caché de resultados y esperas inteligentes para mejorar la velocidad y eficiencia
 
 ## Tecnologías Utilizadas
 
@@ -182,7 +183,12 @@ scraperMVP/
 ├── integrations/               # Integraciones externas
 │   └── google_sheets.py        # Integración con Google Sheets
 ├── utils/                      # Funciones de utilidad
-│   └── helpers.py              # Funciones auxiliares comunes
+│   ├── helpers.py              # Funciones auxiliares comunes
+│   ├── parallel_scraping.py    # Sistema de paralelización para scrapers
+│   ├── browser_pool.py         # Pool de navegadores para optimizar recursos
+│   └── cache_manager.py        # Gestor de caché para resultados de scrapers
+├── docs/                       # Documentación técnica
+│   └── performance_optimization.md # Documentación sobre optimizaciones de rendimiento
 ├── scripts/                    # Scripts de demostración y utilidad
 ├── logs/                       # Archivos de registro
 ├── results/                    # Archivos de salida
@@ -190,6 +196,12 @@ scraperMVP/
 ├── .env.template               # Plantilla de variables de entorno
 └── requirements.txt            # Dependencias del proyecto
 ```
+
+## Documentación
+
+La documentación completa del proyecto está disponible en el directorio `docs/`:
+
+- [Optimización de Rendimiento](docs/performance_optimization.md): Detalles sobre la paralelización de scrapers, optimización de Selenium y caché de resultados.
 
 ## Pruebas
 

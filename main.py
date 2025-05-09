@@ -41,6 +41,10 @@ from utils.retry import configure_retry_from_env, retry_manager
 from utils.dashboard import BasicDashboard, AdvancedDashboard, MetricsManager
 from utils.data_quality import create_data_quality_monitor, DataQualityConfig
 
+# Import for ThreadPoolExecutor and parallel scraping utilities
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from utils.parallel_scraping import ParallelScraper, run_parallel_scraper_from_config, ScraperTask
+
 # Configure logging
 log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs")
 os.makedirs(log_dir, exist_ok=True)
@@ -121,7 +125,9 @@ class ConfigManager:
             "max_results": int(os.environ.get("GOOGLE_MAPS_MAX_RESULTS", "100")),
             "headless": os.environ.get("HEADLESS_BROWSER", "False").lower() == "true",  # Changed default to "False"
             "request_delay": float(os.environ.get("GOOGLE_MAPS_WAIT_TIME", "2.0")),  # Changed from wait_time
-            "enabled": os.environ.get("ENABLE_GOOGLE_MAPS", "True").lower() == "true"
+            "enabled": os.environ.get("ENABLE_GOOGLE_MAPS", "True").lower() == "true",
+            "max_workers": int(os.environ.get("GOOGLE_MAPS_MAX_WORKERS", os.cpu_count() or 4)),
+            "show_progress": os.environ.get("SHOW_PROGRESS_BARS", "True").lower() == "true"
         }
         
         # Instagram configuration
@@ -131,7 +137,9 @@ class ConfigManager:
             "hashtags": os.environ.get("INSTAGRAM_HASHTAGS", "").split(",") if os.environ.get("INSTAGRAM_HASHTAGS") else [],
             "locations": os.environ.get("INSTAGRAM_LOCATIONS", "").split(",") if os.environ.get("INSTAGRAM_LOCATIONS") else [],
             "max_results": int(os.environ.get("INSTAGRAM_MAX_RESULTS", "100")),  # Changed from max_posts and INSTAGRAM_MAX_POSTS
-            "enabled": os.environ.get("ENABLE_INSTAGRAM", "True").lower() == "true"
+            "enabled": os.environ.get("ENABLE_INSTAGRAM", "True").lower() == "true",
+            "max_workers": int(os.environ.get("INSTAGRAM_MAX_WORKERS", min(os.cpu_count() or 3, 3))),  # Limited to 3 by default to avoid rate limiting
+            "show_progress": os.environ.get("SHOW_PROGRESS_BARS", "True").lower() == "true"
         }
         
         # Directory scrapers configuration
@@ -140,7 +148,9 @@ class ConfigManager:
             "search_queries": self._parse_search_queries(os.environ.get("DIRECTORY_QUERIES", "[]")),
             "max_results": int(os.environ.get("DIRECTORY_MAX_RESULTS", "50")),
             "wait_time": float(os.environ.get("DIRECTORY_WAIT_TIME", "3.0")),
-            "enabled": os.environ.get("ENABLE_DIRECTORIES", "True").lower() == "true"
+            "enabled": os.environ.get("ENABLE_DIRECTORIES", "True").lower() == "true",
+            "max_workers": int(os.environ.get("DIRECTORY_MAX_WORKERS", os.cpu_count() or 4)),
+            "show_progress": os.environ.get("SHOW_PROGRESS_BARS", "True").lower() == "true"
         }
         
     def _load_google_sheets_config(self) -> None:
@@ -731,7 +741,7 @@ def main(args=None):
 @retry_manager.retry()
 def run_google_maps_scraper(config: Dict[str, Any]) -> List[Dict[str, Any]]:
     """
-    Initialize and run Google Maps scraper.
+    Initialize and run Google Maps scraper with parallel execution.
     
     Args:
         config: Configuration for Google Maps scraper
@@ -739,7 +749,6 @@ def run_google_maps_scraper(config: Dict[str, Any]) -> List[Dict[str, Any]]:
     Returns:
         List of dictionaries with results
     """
-    results = []
     search_queries = config.get("search_queries", [])
     
     # If no specific queries provided, use some defaults for LATAM
@@ -750,50 +759,45 @@ def run_google_maps_scraper(config: Dict[str, Any]) -> List[Dict[str, Any]]:
             {"query": "cafeterías", "location": "Santiago, Chile"}
         ]
     
-    # Initialize the scraper
-    scraper = GoogleMapsScraper(
-        headless=config.get("headless", True),
-        max_results=config.get("max_results", 100),
-        request_delay=config.get("request_delay", 2.0)
+    # Get the number of workers from config or environment
+    max_workers = int(os.environ.get("GOOGLE_MAPS_MAX_WORKERS", 
+                                     config.get("max_workers", os.cpu_count() or 4)))
+    
+    logger.info(f"Starting Google Maps scraping with {max_workers} workers for {len(search_queries)} queries")
+    
+    # Use our parallel scraping utility to run all queries in parallel
+    parallel_results = run_parallel_scraper_from_config(
+        scraper_class=GoogleMapsScraper,
+        config=config,
+        search_queries=search_queries,
+        max_workers=max_workers,
+        show_progress=config.get("show_progress", True)
     )
     
-    try:
-        for search_item in search_queries: # Renamed 'search' to 'search_item' to avoid conflict
-            query = search_item.get("query", "")
-            location = search_item.get("location", "")
-            
-            if not query or not location:
-                logger.warning(f"Skipping invalid search: {search_item}")
-                continue
-            
-            logger.info(f"Searching Google Maps for '{query}' in '{location}'")
-            # Corrected method name from scraper.search to scraper.scrape
-            search_results = scraper.scrape(
-                query=query, 
-                location=location
-            )
-            
-            if search_results:
-                # Add source and query info to results
-                for result in search_results:
-                    result["source"] = "google_maps"
-                    result["query"] = query
-                    result["location"] = location
-                
-                results.extend(search_results)
-                logger.info(f"Found {len(search_results)} results for '{query}' in '{location}'")
-            else:
-                logger.warning(f"No results found for '{query}' in '{location}'")
-    finally:
-        # Ensure the scraper is properly closed
-        scraper.close()
+    # Get all results and log statistics
+    results = parallel_results.get('all_results', [])
+    stats = parallel_results.get('stats', {})
+    errors = parallel_results.get('errors', {})
+    
+    # Log performance statistics
+    logger.info(f"Google Maps scraping completed: {stats.get('successful_tasks', 0)} successful, "
+               f"{stats.get('failed_tasks', 0)} failed, "
+               f"{stats.get('completion_rate', 0):.1f}% completion rate")
+    
+    if stats.get('execution_time'):
+        logger.info(f"Total execution time: {stats.get('execution_time', 0):.2f} seconds, "
+                   f"Average query time: {stats.get('avg_execution_time', 0):.2f} seconds")
+    
+    # Log any errors
+    for task_id, error_info in errors.items():
+        logger.error(f"Error in Google Maps task {task_id}: {error_info.get('error', 'Unknown error')}")
     
     return results
 
 @retry_manager.retry()
 def run_instagram_scraper(config: Dict[str, Any]) -> List[Dict[str, Any]]:
     """
-    Initialize and run Instagram scraper.
+    Initialize and run Instagram scraper with parallel execution.
     
     Args:
         config: Configuration for Instagram scraper
@@ -801,70 +805,101 @@ def run_instagram_scraper(config: Dict[str, Any]) -> List[Dict[str, Any]]:
     Returns:
         List of dictionaries with results
     """
-    results = []
+    all_results = []
     
-    # Initialize the scraper
+    # Get the number of workers from config or environment
+    max_workers = int(os.environ.get("INSTAGRAM_MAX_WORKERS", 
+                                     config.get("max_workers", os.cpu_count() or 3)))
+    
+    logger.info(f"Starting Instagram scraping with {max_workers} workers")
+    
+    # Setup the parallel scraper
+    parallel_scraper = ParallelScraper(max_workers=max_workers)
+    
+    # Create a single scraper instance to share credentials
     scraper = InstagramScraper(
         username=config.get("username", ""),
         password=config.get("password", ""),
-        max_results=config.get("max_results", 100)  # Ensures "max_results" is fetched from config
+        max_results=config.get("max_results", 100)
     )
     
-    try:
-        # Scrape by hashtags
-        hashtags = config.get("hashtags", [])
-        if hashtags:
-            for hashtag in hashtags:
-                hashtag = hashtag.strip().lstrip('#')
-                if not hashtag:
-                    continue
-                
-                logger.info(f"Searching Instagram for hashtag '#{hashtag}'")
-                hashtag_results = scraper.search_by_hashtag(hashtag)
-                
-                if hashtag_results:
-                    # Add source and query info to results
-                    for result in hashtag_results:
-                        result["source"] = "instagram"
-                        result["query_type"] = "hashtag"
-                        result["query"] = hashtag
-                    
-                    results.extend(hashtag_results)
-                    logger.info(f"Found {len(hashtag_results)} profiles for hashtag '#{hashtag}'")
-                else:
-                    logger.warning(f"No results found for hashtag '#{hashtag}'")
+    # Add hashtag tasks
+    hashtags = config.get("hashtags", [])
+    for i, hashtag in enumerate(hashtags):
+        hashtag = hashtag.strip().lstrip('#')
+        if not hashtag:
+            continue
         
-        # Scrape by locations
-        locations = config.get("locations", [])
-        if locations:
-            for location_id in locations:
-                if not location_id:
-                    continue
-                
-                logger.info(f"Searching Instagram for location ID '{location_id}'")
-                location_results = scraper.search_by_location(location_id)
-                
-                if location_results:
-                    # Add source and query info to results
-                    for result in location_results:
-                        result["source"] = "instagram"
-                        result["query_type"] = "location"
-                        result["query"] = location_id
-                    
-                    results.extend(location_results)
-                    logger.info(f"Found {len(location_results)} profiles for location ID '{location_id}'")
-                else:
-                    logger.warning(f"No results found for location ID '{location_id}'")
-    finally:
-        # No close() method for InstagramScraper; nothing to do here
-        pass
+        task_id = f"hashtag_{i}_{hashtag}"
+        
+        task = ScraperTask(
+            task_id=task_id,
+            scraper_instance=scraper,
+            method_name='search_by_hashtag',
+            args=[hashtag]
+        )
+        
+        parallel_scraper.add_task(task)
     
-    return results
+    # Add location tasks
+    locations = config.get("locations", [])
+    for i, location_id in enumerate(locations):
+        if not location_id:
+            continue
+        
+        task_id = f"location_{i}_{location_id}"
+        
+        task = ScraperTask(
+            task_id=task_id,
+            scraper_instance=scraper,
+            method_name='search_by_location',
+            args=[location_id]
+        )
+        
+        parallel_scraper.add_task(task)
+    
+    # Execute all tasks in parallel
+    results = parallel_scraper.execute_all()
+    
+    # Process and add metadata to results
+    for task_id, task_results in results['results'].items():
+        if isinstance(task_results, list):
+            # Extract query type and query from task_id
+            parts = task_id.split('_')
+            if len(parts) >= 3:
+                query_type = parts[0]  # 'hashtag' or 'location'
+                query = '_'.join(parts[2:])  # Join all parts after the index
+                
+                for result in task_results:
+                    result["source"] = "instagram"
+                    result["query_type"] = query_type
+                    result["query"] = query
+                
+                all_results.extend(task_results)
+                logger.info(f"Found {len(task_results)} profiles for {query_type} '{query}'")
+    
+    # Log statistics
+    stats = results.get('stats', {})
+    errors = results.get('errors', {})
+    
+    logger.info(f"Instagram scraping completed: {stats.get('successful_tasks', 0)} successful, "
+               f"{stats.get('failed_tasks', 0)} failed, "
+               f"{stats.get('completion_rate', 0):.1f}% completion rate")
+    
+    if stats.get('execution_time'):
+        logger.info(f"Total execution time: {stats.get('execution_time', 0):.2f} seconds, "
+                   f"Average task time: {stats.get('avg_execution_time', 0):.2f} seconds")
+    
+    # Log any errors
+    for task_id, error_info in errors.items():
+        logger.error(f"Error in Instagram task {task_id}: {error_info.get('error', 'Unknown error')}")
+    
+    return all_results
 
 @retry_manager.retry()
 def run_directory_scrapers(config: Dict[str, Any]) -> List[Dict[str, Any]]:
     """
-    Initialize and run directory scrapers.
+    Initialize and run directory scrapers with parallel execution.
     
     Args:
         config: Configuration for directory scrapers
@@ -872,7 +907,7 @@ def run_directory_scrapers(config: Dict[str, Any]) -> List[Dict[str, Any]]:
     Returns:
         List of dictionaries with results
     """
-    results = []
+    all_results = []
     enabled_directories = config.get("enabled_directories", [])
     search_queries = config.get("search_queries", [])
     max_results = config.get("max_results", 50)
@@ -885,26 +920,42 @@ def run_directory_scrapers(config: Dict[str, Any]) -> List[Dict[str, Any]]:
             {"query": "cafeterías", "location": "Santiago"}
         ]
     
-    # Process each enabled directory
+    # Get the number of workers from config or environment
+    max_workers = int(os.environ.get("DIRECTORY_MAX_WORKERS", 
+                                     config.get("max_workers", min(os.cpu_count() or 4, len(enabled_directories)))))
+    
+    logger.info(f"Starting directory scraping with {max_workers} workers for {len(enabled_directories)} directories")
+    
+    # For each directory, create a parallel scraper task for all search queries
     for directory in enabled_directories:
-        dir_results = []
-        
         try:
-            if directory.lower() == "paginas_amarillas":
-                logger.info("Initializing Páginas Amarillas scraper...")
-                scraper = PaginasAmarillasScraper(max_results=max_results)
-            elif directory.lower() == "guialocal":
-                logger.info("Initializing GuiaLocal scraper...")
-                scraper = GuiaLocalScraper(max_results=max_results)
-            elif directory.lower() == "cylex":
-                logger.info("Initializing Cylex scraper...")
-                scraper = CylexScraper(max_results=max_results)
-            else:
-                logger.warning(f"Unknown directory: {directory}. Skipping.")
-                continue
+            # Create a scraper factory function for this directory
+            def create_scraper_for_directory():
+                if directory.lower() == "paginas_amarillas":
+                    logger.info("Initializing Páginas Amarillas scraper...")
+                    return PaginasAmarillasScraper(max_results=max_results)
+                elif directory.lower() == "guialocal":
+                    logger.info("Initializing GuiaLocal scraper...")
+                    return GuiaLocalScraper(max_results=max_results)
+                elif directory.lower() == "cylex":
+                    logger.info("Initializing Cylex scraper...")
+                    return CylexScraper(max_results=max_results)
+                else:
+                    logger.warning(f"Unknown directory: {directory}. Skipping.")
+                    return None
             
-            # Run searches for this directory
-            for search in search_queries:
+            # Create scraper instance
+            scraper = create_scraper_for_directory()
+            if not scraper:
+                continue
+                
+            # Create a parallel scraper for this directory
+            directory_scraper = ParallelScraper(
+                max_workers=min(max_workers, len(search_queries))
+            )
+            
+            # Add tasks for each search query
+            for i, search in enumerate(search_queries):
                 query = search.get("query", "")
                 location = search.get("location", "")
                 
@@ -912,32 +963,66 @@ def run_directory_scrapers(config: Dict[str, Any]) -> List[Dict[str, Any]]:
                     logger.warning(f"Skipping invalid search: {search}")
                     continue
                 
-                logger.info(f"Searching {directory} for '{query}' in '{location}'")
-                search_results = scraper.scrape(query=query, location=location)
+                task_id = f"{directory.lower()}_{i}_{query}_{location}".replace(' ', '_')
                 
-                if search_results:
-                    # Add source and query info to results
-                    for result in search_results:
-                        result["source"] = directory.lower()
-                        result["query"] = query
-                        result["location"] = location
+                task = ScraperTask(
+                    task_id=task_id,
+                    scraper_instance=scraper,
+                    method_name='scrape',
+                    args=[query, location]
+                )
+                
+                directory_scraper.add_task(task)
+            
+            # Execute all tasks for this directory
+            logger.info(f"Running parallel scraping for {directory} with {len(directory_scraper.tasks)} search queries")
+            results = directory_scraper.execute_all()
+            
+            # Process results and add metadata
+            for task_id, task_results in results['results'].items():
+                if isinstance(task_results, list):
+                    # Extract query and location from task_id
+                    parts = task_id.split('_')
+                    if len(parts) >= 4:
+                        dir_name = parts[0]
+                        query_parts = parts[2:-1]  # Skip directory, index, and location
+                        location = parts[-1]
+                        
+                        query = '_'.join(query_parts)
+                        
+                        for result in task_results:
+                            result["source"] = dir_name
+                            result["query"] = query.replace('_', ' ')
+                            result["location"] = location.replace('_', ' ')
                     
-                    dir_results.extend(search_results)
-                    logger.info(f"Found {len(search_results)} results in {directory} for '{query}' in '{location}'")
-                else:
-                    logger.warning(f"No results found in {directory} for '{query}' in '{location}'")
+                    all_results.extend(task_results)
+            
+            # Log statistics
+            stats = results.get('stats', {})
+            errors = results.get('errors', {})
+            
+            logger.info(f"{directory} scraping completed: {stats.get('successful_tasks', 0)} successful, "
+                       f"{stats.get('failed_tasks', 0)} failed, "
+                       f"{stats.get('completion_rate', 0):.1f}% completion rate")
+            
+            if stats.get('execution_time'):
+                logger.info(f"{directory} total execution time: {stats.get('execution_time', 0):.2f} seconds, "
+                           f"Average query time: {stats.get('avg_execution_time', 0):.2f} seconds")
             
             # Close the scraper
-            scraper.close()
+            try:
+                scraper.close()
+            except Exception as close_err:
+                logger.warning(f"Error closing {directory} scraper: {str(close_err)}")
             
-            # Add directory results to overall results
-            results.extend(dir_results)
-            logger.info(f"Completed {directory} scraping with {len(dir_results)} total results")
-            
+            # Log any errors
+            for task_id, error_info in errors.items():
+                logger.error(f"Error in {directory} task {task_id}: {error_info.get('error', 'Unknown error')}")
+                
         except Exception as e:
             logger.error(f"Error running {directory} scraper: {str(e)}", exc_info=True)
     
-    return results
+    return all_results
 
 # Esta función ha sido reemplazada por process_and_upload_data
 # que implementa el flujo completo de ValidationProcessor

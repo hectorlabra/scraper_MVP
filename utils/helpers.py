@@ -721,3 +721,163 @@ def sanitize_text(text: str) -> str:
     sanitized = sanitized.strip()
     
     return sanitized
+
+def wait_for_element(driver, selector, by_type=None, timeout=10, condition='presence'):
+    """
+    Wait for an element to be available in the page with intelligent waiting.
+    
+    Args:
+        driver: Selenium WebDriver instance
+        selector: CSS selector or XPath expression
+        by_type: Selenium By type (e.g., By.CSS_SELECTOR, By.XPATH)
+        timeout: Maximum time to wait (in seconds)
+        condition: Type of wait condition ('presence', 'visibility', 'clickable')
+        
+    Returns:
+        The element if found, None otherwise
+    """
+    from selenium.webdriver.common.by import By
+    from selenium.webdriver.support.ui import WebDriverWait
+    from selenium.webdriver.support import expected_conditions as EC
+    from selenium.common.exceptions import TimeoutException
+    
+    if by_type is None:
+        # Default to CSS selector
+        by_type = By.CSS_SELECTOR
+    
+    try:
+        if condition == 'presence':
+            element = WebDriverWait(driver, timeout).until(
+                EC.presence_of_element_located((by_type, selector))
+            )
+        elif condition == 'visibility':
+            element = WebDriverWait(driver, timeout).until(
+                EC.visibility_of_element_located((by_type, selector))
+            )
+        elif condition == 'clickable':
+            element = WebDriverWait(driver, timeout).until(
+                EC.element_to_be_clickable((by_type, selector))
+            )
+        else:
+            logger.warning(f"Unknown wait condition: {condition}, defaulting to presence")
+            element = WebDriverWait(driver, timeout).until(
+                EC.presence_of_element_located((by_type, selector))
+            )
+            
+        return element
+    except TimeoutException:
+        logger.warning(f"Timed out waiting for element: {selector} with condition: {condition}")
+        return None
+
+def wait_for_elements(driver, selector, by_type=None, timeout=10, condition='presence'):
+    """
+    Wait for multiple elements to be available in the page.
+    
+    Args:
+        driver: Selenium WebDriver instance
+        selector: CSS selector or XPath expression
+        by_type: Selenium By type (e.g., By.CSS_SELECTOR, By.XPATH)
+        timeout: Maximum time to wait (in seconds)
+        condition: Type of wait condition ('presence', 'visibility')
+        
+    Returns:
+        List of elements if found, empty list otherwise
+    """
+    from selenium.webdriver.common.by import By
+    from selenium.webdriver.support.ui import WebDriverWait
+    from selenium.webdriver.support import expected_conditions as EC
+    from selenium.common.exceptions import TimeoutException
+    
+    if by_type is None:
+        # Default to CSS selector
+        by_type = By.CSS_SELECTOR
+    
+    try:
+        if condition == 'presence':
+            # Wait for at least one element to be present
+            WebDriverWait(driver, timeout).until(
+                EC.presence_of_element_located((by_type, selector))
+            )
+        elif condition == 'visibility':
+            # Wait for at least one element to be visible
+            WebDriverWait(driver, timeout).until(
+                EC.visibility_of_element_located((by_type, selector))
+            )
+        else:
+            logger.warning(f"Unknown wait condition: {condition}, defaulting to presence")
+            WebDriverWait(driver, timeout).until(
+                EC.presence_of_element_located((by_type, selector))
+            )
+        
+        # Now get all elements
+        elements = driver.find_elements(by_type, selector)
+        return elements
+    except TimeoutException:
+        logger.warning(f"Timed out waiting for elements: {selector}")
+        return []
+
+def wait_for_page_change(driver, timeout=10, reference_element=None, url_change=True):
+    """
+    Wait for a page to change after clicking on navigation elements.
+    Uses multiple strategies to detect page changes intelligently.
+    
+    Args:
+        driver: Selenium WebDriver instance
+        timeout: Maximum time to wait (in seconds)
+        reference_element: Optional reference element that should become stale
+        url_change: Whether to check for URL changes
+        
+    Returns:
+        True if page change detected, False otherwise
+    """
+    from selenium.webdriver.support.ui import WebDriverWait
+    from selenium.webdriver.support import expected_conditions as EC
+    from selenium.common.exceptions import TimeoutException, StaleElementReferenceException
+    
+    try:
+        # Store initial state
+        initial_url = driver.current_url
+        initial_page_source_length = len(driver.page_source)
+        
+        # Multiple checks for page change detection
+        start_time = time.time()
+        detected_change = False
+        
+        while time.time() - start_time < timeout and not detected_change:
+            # Check URL change if requested
+            if url_change and driver.current_url != initial_url:
+                logger.debug(f"Detected URL change: {initial_url} -> {driver.current_url}")
+                detected_change = True
+                break
+                
+            # Check if reference element is stale (good indicator of page reload)
+            if reference_element:
+                try:
+                    # Attempt to check a property - will raise exception if stale
+                    reference_element.is_enabled()
+                except StaleElementReferenceException:
+                    logger.debug("Detected page change: reference element is stale")
+                    detected_change = True
+                    break
+            
+            # Check if page source length has changed significantly
+            current_page_source_length = len(driver.page_source)
+            if abs(current_page_source_length - initial_page_source_length) > 100:  # threshold
+                logger.debug(f"Detected page change: page source length changed {initial_page_source_length} -> {current_page_source_length}")
+                detected_change = True
+                break
+                
+            # Small wait to prevent CPU hammering
+            time.sleep(0.2)
+        
+        # Final wait for page to stabilize if change detected
+        if detected_change:
+            time.sleep(0.5)
+            return True
+        else:
+            logger.warning("No page change detected within timeout period")
+            return False
+            
+    except Exception as e:
+        logger.error(f"Error while waiting for page change: {e}")
+        return False
